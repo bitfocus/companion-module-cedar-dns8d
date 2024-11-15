@@ -48,6 +48,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 					choices: channels,
 					default: 1,
 					allowCustom: true,
+					tooltip: 'Variable should return channel number',
 				},
 			],
 			callback: async (feedback, context) => {
@@ -69,6 +70,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 					choices: channels,
 					default: 1,
 					allowCustom: true,
+					tooltip: 'Variable should return channel number',
 				},
 			],
 			callback: async (feedback, context) => {
@@ -90,6 +92,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 					choices: channels,
 					default: 1,
 					allowCustom: true,
+					tooltip: 'Variable should return channel number',
 				},
 			],
 			callback: async (feedback, context) => {
