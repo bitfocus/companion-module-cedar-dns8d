@@ -1,6 +1,12 @@
 import type { CedarDNS8DInstance } from './main.js'
+import { DropdownChoice } from '@companion-module/base'
 
 export function UpdateActions(self: CedarDNS8DInstance): void {
+	const channels: DropdownChoice[] = []
+	for (let i = 1; i <= 8; i++) {
+		const chan = self.getChannel(i)
+		channels[i] = { id: i, label: chan.name }
+	}
 	self.setActionDefinitions({
 		sample_action: {
 			name: 'My First Action',

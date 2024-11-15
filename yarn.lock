@@ -851,6 +851,7 @@ __metadata:
     "@companion-module/tools": "npm:^2.1.0"
     "@types/node": "npm:^22.9.0"
     eslint: "npm:^9.14.0"
+    fast-xml-parser: "npm:~4.5.0"
     husky: "npm:^9.1.6"
     lint-staged: "npm:^15.2.10"
     prettier: "npm:^3.3.3"
@@ -1388,6 +1389,17 @@ __metadata:
   version: 3.0.3
   resolution: "fast-uri@npm:3.0.3"
   checksum: 10c0/4b2c5ce681a062425eae4f15cdc8fc151fd310b2f69b1f96680677820a8b49c3cd6e80661a406e19d50f0c40a3f8bffdd458791baf66f4a879d80be28e10a320
+  languageName: node
+  linkType: hard
+
+"fast-xml-parser@npm:~4.5.0":
+  version: 4.5.0
+  resolution: "fast-xml-parser@npm:4.5.0"
+  dependencies:
+    strnum: "npm:^1.0.5"
+  bin:
+    fxparser: src/cli/cli.js
+  checksum: 10c0/71d206c9e137f5c26af88d27dde0108068a5d074401901d643c500c36e95dfd828333a98bda020846c41f5b9b364e2b0e9be5b19b0bdcab5cf31559c07b80a95
   languageName: node
   linkType: hard
 
@@ -2729,6 +2741,13 @@ __metadata:
   version: 3.1.1
   resolution: "strip-json-comments@npm:3.1.1"
   checksum: 10c0/9681a6257b925a7fa0f285851c0e613cc934a50661fa7bb41ca9cbbff89686bb4a0ee366e6ecedc4daafd01e83eee0720111ab294366fe7c185e935475ebcecd
+  languageName: node
+  linkType: hard
+
+"strnum@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "strnum@npm:1.0.5"
+  checksum: 10c0/64fb8cc2effbd585a6821faa73ad97d4b553c8927e49086a162ffd2cc818787643390b89d567460a8e74300148d11ac052e21c921ef2049f2987f4b1b89a7ff1
   languageName: node
   linkType: hard
 

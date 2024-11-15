@@ -1,8 +1,10 @@
 import { Regex, type SomeCompanionConfigField } from '@companion-module/base'
+const pollInterval = 40
 
 export interface ModuleConfig {
 	host: string
 	port: number
+	interval: number
 }
 
 export function GetConfigFields(): SomeCompanionConfigField[] {
@@ -22,6 +24,15 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			min: 1,
 			max: 65535,
 			default: 80,
+		},
+		{
+			type: 'number',
+			id: 'interval',
+			label: 'Poll Interval (mS)',
+			width: 4,
+			min: 40,
+			max: 1000,
+			default: pollInterval,
 		},
 	]
 }

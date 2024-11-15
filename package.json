@@ -19,7 +19,8 @@
 		"url": "git+https://github.com/phillipivan/companion-module-cedar-dns8d.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.11.1"
+		"@companion-module/base": "~1.11.1",
+		"fast-xml-parser": "~4.5.0"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.1.0",
