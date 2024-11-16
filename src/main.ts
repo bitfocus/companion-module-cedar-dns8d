@@ -5,13 +5,15 @@ import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { XMLParser } from 'fast-xml-parser'
+import PQueue from 'p-queue'
 
-const reconnectInterval = 5000
+const reconnectInterval = 10000
 const pollMessage = `<dns8><chan idx="0"><name/><bias/><atten/><dns/></chan><chan idx="1"><name/><bias/><atten/><dns/></chan><chan idx="2"><name/><bias/><atten/><dns/></chan><chan idx="3"><name/><bias/><atten/><dns/></chan><chan idx="4"><name/><bias/><atten/><dns/></chan><chan idx="5"><name/><bias/><atten/><dns/></chan><chan idx="6"><name/><bias/><atten/><dns/></chan><chan idx="7"><name/><bias/><atten/><dns/></chan><group idx="0"><name/><bias/><atten/><band idx="0"><bias/><atten/></band><band idx="1"><bias/><atten/></band><band idx="2"><bias/><atten/></band><band idx="3"><bias/><atten/></band><band idx="4"><bias/><atten/></band><band idx="5"><bias/><atten/></band></group><global/></dns8>`
 const parserOptions = {
 	allowBooleanAttributes: true,
 	ignoreAttributes: false,
 }
+const queue = new PQueue({ concurrency: 1, interval: 5, intervalCap: 1 })
 const parser = new XMLParser(parserOptions)
 export interface DNS8Channel {
 	active1: number
@@ -26,19 +28,35 @@ export interface DNS8Channel {
 	on: boolean
 }
 
+export interface dns8d {
+	globalOn: boolean
+	globalLearn: boolean
+	fallbackMode: boolean
+	swVersion: number
+	dspVersion: number
+	channels: DNS8Channel[]
+}
+
 export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 	config!: ModuleConfig // Setup in init()
 	private socket!: WebSocket
 	private pollTimer: NodeJS.Timeout | undefined = undefined
 	private reconnectTimer: NodeJS.Timeout | undefined = undefined
-	public dns8d: DNS8Channel[] = []
+	public dns8d: dns8d = {
+		globalOn: false,
+		globalLearn: false,
+		fallbackMode: false,
+		swVersion: 0,
+		dspVersion: 0,
+		channels: [],
+	}
 	constructor(internal: unknown) {
 		super(internal)
 	}
 
-	getChannel(id: number): DNS8Channel {
-		if (this.dns8d[id] === undefined) {
-			this.dns8d[id] = {
+	public getChannel(id: number): DNS8Channel {
+		if (this.dns8d.channels[id] === undefined) {
+			this.dns8d.channels[id] = {
 				active1: 0,
 				active2: 0,
 				power1: 0,
@@ -51,22 +69,30 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 				on: false,
 			}
 		}
-		return this.dns8d[id]
+		return this.dns8d.channels[id]
 	}
 
-	sendMessage(message: string): void {
-		if (this.socket?.readyState === WebSocket.OPEN) {
-			this.socket.send(message)
-		} else {
-			this.log('warn', `Socket not open. Tried to send:\n${message}`)
-		}
+	public async sendMessage(message: string, priority = 1): Promise<void> {
+		await queue.add(
+			() => {
+				if (this.socket?.readyState === WebSocket.OPEN) {
+					this.socket.send(message)
+				} else {
+					this.log('warn', `Socket not open. Tried to send:\n${message}`)
+				}
+			},
+			{ priority: priority },
+		)
 	}
 
 	startPolling(interval: number): void {
 		if (this.pollTimer !== undefined) {
 			clearTimeout(this.pollTimer)
 		}
-		this.sendMessage(pollMessage)
+		if (queue.sizeBy({ priority: 0 }) === 0) {
+			// only add a poll query if there isn't already one in the queue
+			this.sendMessage(pollMessage, 0).catch(() => {})
+		}
 		this.pollTimer = setTimeout(() => this.startPolling(interval), interval)
 	}
 
@@ -77,10 +103,11 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		}
 	}
 
-	newSocket(host: string, port: number, interval: number): void {
-		if (this.socket?.readyState === WebSocket.OPEN) {
+	newSocket(host: string, port: number = 80, interval: number = 40): void {
+		if (this.socket?.readyState === WebSocket.OPEN || this.socket?.readyState === WebSocket.CONNECTING) {
 			this.socket.close(1000, 'Resetting connection')
 		}
+		queue.clear()
 		this.socket = new WebSocket(`ws://${host}:${Math.floor(port)}/info.ws`)
 		this.socket.addEventListener('open', () => {
 			this.updateStatus(InstanceStatus.Ok)
@@ -103,6 +130,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 			this.log('warn', `Socket Closed ${event.code} ${event.reason}`)
 			this.updateStatus(InstanceStatus.ConnectionFailure)
 			this.stopPolling()
+			queue.clear()
 			this.reconnectTimer = setTimeout(() => this.newSocket(host, port, interval), reconnectInterval)
 		})
 	}
@@ -121,7 +149,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 	async destroy(): Promise<void> {
 		this.log('debug', `destroy ${this.id}`)
 		this.stopPolling()
-		if (this.socket?.readyState === WebSocket.OPEN) {
+		if (this.socket?.readyState === WebSocket.OPEN || this.socket?.readyState === WebSocket.CONNECTING) {
 			this.socket.close(1000)
 		}
 	}
@@ -156,12 +184,28 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 	setVarValues(message: string): void {
 		const data = parser.parse(message)
 		let updateActionsFeedbacks = false
+		this.dns8d.globalOn =
+			data?.dns8d?.global[`@_on`] == '1' ? true : data?.dns8d?.global[`@_on`] == '0' ? false : this.dns8d.globalOn
+		this.dns8d.globalLearn =
+			data?.dns8d?.global[`@_learn`] == '1'
+				? true
+				: data?.dns8d?.global[`@_learn`] == '0'
+					? false
+					: this.dns8d.globalLearn
+		this.dns8d.fallbackMode =
+			data?.dns8d?.global[`@_fallbackmode`] == '1'
+				? true
+				: data?.dns8d?.global[`@_fallbackmode`] == '0'
+					? false
+					: this.dns8d.fallbackMode
+		this.dns8d.swVersion = Number(data?.dns8d?.global[`@_swVersion`] ?? this.dns8d.swVersion)
+		this.dns8d.dspVersion = Number(data?.dns8d?.global[`@_dspVersion`] ?? this.dns8d.dspVersion)
 		let varList = {
-			global_On: data?.dns8d?.global[`@_on`] == '1' ? true : false,
-			global_Learn: data?.dns8d?.global[`@_learn`] == '1' ? true : false,
-			global_FallbackMode: data?.dns8d?.global[`@_fallbackmode`] == '1' ? true : false,
-			global_swVersion: Number(data?.dns8d?.global[`@_swVersion`] ?? 0),
-			global_dspVersion: Number(data?.dns8d?.global[`@_dspVersion`] ?? 0),
+			global_On: this.dns8d.globalOn,
+			global_Learn: this.dns8d.globalLearn,
+			global_FallbackMode: this.dns8d.fallbackMode,
+			global_swVersion: this.dns8d.swVersion,
+			global_dspVersion: this.dns8d.dspVersion,
 		}
 		for (let i = 1; i <= 8; i++) {
 			const chan = this.getChannel(i)
