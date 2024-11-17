@@ -2,7 +2,7 @@ import { combineRgb, type CompanionFeedbackDefinition, DropdownChoice } from '@c
 import type { CedarDNS8DInstance, DNS8Channel } from './main.js'
 import { graphics } from 'companion-module-utils'
 
-const colours = {
+export const colours = {
 	red: combineRgb(255, 0, 0),
 	green: combineRgb(0, 204, 0),
 	blue: combineRgb(0, 0, 255),
@@ -46,6 +46,19 @@ const rectangleDefault: graphics.OptionsRect = {
 	fillOpacity: 255,
 	offsetX: 6,
 	offsetY: 6,
+}
+
+const markerDefault: graphics.OptionsRect = {
+	width: 72,
+	height: 72,
+	color: colours.dnsDarkBlue,
+	rectWidth: 8,
+	rectHeight: 3,
+	strokeWidth: 1,
+	fillColor: colours.dnsLightBlue,
+	fillOpacity: 255,
+	offsetX: 60,
+	offsetY: 5,
 }
 
 const styles = {
@@ -106,12 +119,30 @@ function buildIcon(chan: DNS8Channel, width = 72, height = 72): Uint8Array {
 		offsetX: width - 8,
 		offsetY: height - 8,
 	}
+	const attenMarker: graphics.OptionsRect = {
+		...markerDefault,
+		width: width,
+		height: height,
+		offsetX: width - 17,
+		offsetY: 5 + Math.round((height - 16) * ((Math.abs(chan.atten) * 5) / 100)),
+	}
+	const biasMarker: graphics.OptionsRect = {
+		...markerDefault,
+		width: width,
+		height: height,
+		offsetX: width - 9,
+		offsetY: 5 + Math.round((height - 16) * ((Math.abs(chan.bias - 10) * 5) / 100)),
+		color: colours.dnsGrey,
+		fillColor: colours.black,
+	}
 	elements.push(graphics.bar(atten1))
 	elements.push(graphics.bar(atten2))
 	elements.push(graphics.bar(power1))
 	elements.push(graphics.bar(power2))
 	elements.push(graphics.rect(learnRect))
 	elements.push(graphics.rect(dnsRect))
+	elements.push(graphics.rect(attenMarker))
+	elements.push(graphics.rect(biasMarker))
 	return graphics.stackImage(elements)
 }
 

@@ -9,10 +9,10 @@ export function UpdateVariableDefinitions(self: CedarDNS8DInstance): void {
 		{ variableId: 'global_dspVersion', name: 'Global: DSP Version' },
 	]
 	for (let i = 1; i <= 8; i++) {
-		varList.push({ variableId: `channel${i}_Active1`, name: `Channel ${i}: Active 1` })
-		varList.push({ variableId: `channel${i}_Active2`, name: `Channel ${i}: Active 2` })
-		varList.push({ variableId: `channel${i}_Power1`, name: `Channel ${i}: Power 1` })
-		varList.push({ variableId: `channel${i}_Power2`, name: `Channel ${i}: Power 2` })
+		varList.push({ variableId: `channel${i}_Active1`, name: `Channel ${i}: Active Reduction (Max)` })
+		varList.push({ variableId: `channel${i}_Active2`, name: `Channel ${i}: Active Reduction (Average)` })
+		varList.push({ variableId: `channel${i}_Power1`, name: `Channel ${i}: Power (Signal)` })
+		varList.push({ variableId: `channel${i}_Power2`, name: `Channel ${i}: Power (Noise)` })
 		varList.push({ variableId: `channel${i}_Name`, name: `Channel ${i}: Name` })
 		varList.push({ variableId: `channel${i}_Bias`, name: `Channel ${i}: Bias (dB)` })
 		varList.push({ variableId: `channel${i}_Attenuation`, name: `Channel ${i}: Attenuation (dB)` })

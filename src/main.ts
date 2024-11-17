@@ -4,6 +4,7 @@ import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
+import { UpdatePresets } from './presets.js'
 import { XMLParser } from 'fast-xml-parser'
 import PQueue from 'p-queue'
 
@@ -143,6 +144,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
 		this.updateVariableDefinitions() // export variable definitions
+		this.updatePresets()
 		await this.configUpdated(config)
 	}
 	// When module gets deleted
@@ -175,6 +177,10 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 
 	updateFeedbacks(): void {
 		UpdateFeedbacks(this)
+	}
+
+	updatePresets(): void {
+		UpdatePresets(this)
 	}
 
 	updateVariableDefinitions(): void {
