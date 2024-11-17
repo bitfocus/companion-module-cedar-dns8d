@@ -16,7 +16,7 @@ export function UpdatePresets(self: CedarDNS8DInstance): void {
 				bgcolor: colours.black,
 				show_topbar: false,
 				textExpression: true,
-				text: `\`\\n$\{$(generic-module:channel${i}_Name)}\nAtten:\n$\{toFixed($(generic-module:channel${i}_Attenuation),1)} dB\nBias:\n$\{toFixed($(generic-module:channel${i}_Bias),1)} dB\``,
+				text: `\`\\n$\{substr($(generic-module:channel${i}_Name),0,9)}\nAtten:\n$\{toFixed($(generic-module:channel${i}_Attenuation),1)} dB\nBias:\n$\{toFixed($(generic-module:channel${i}_Bias),1)} dB\``,
 			},
 			steps: [
 				{
