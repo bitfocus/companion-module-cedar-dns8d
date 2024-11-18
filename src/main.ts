@@ -57,8 +57,9 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 	}
 
 	public getChannel(id: number): DNS8Channel {
-		if (this.dns8d.channels[id] === undefined) {
-			this.dns8d.channels[id] = {
+		const chanId = Math.floor(id)
+		if (this.dns8d.channels[chanId] === undefined) {
+			this.dns8d.channels[chanId] = {
 				active1: 0,
 				active2: 0,
 				power1: 0,
@@ -71,7 +72,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 				on: false,
 			}
 		}
-		return this.dns8d.channels[id]
+		return this.dns8d.channels[chanId]
 	}
 
 	public buildMessage(
