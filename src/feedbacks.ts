@@ -1,17 +1,32 @@
 import { combineRgb, type CompanionFeedbackDefinition, DropdownChoice } from '@companion-module/base'
+import { channelOption } from './actions.js'
 import type { CedarDNS8DInstance, DNS8Channel } from './main.js'
 import { graphics } from 'companion-module-utils'
 
+export enum FeedbackId {
+	channelLearn = 'channelLearn',
+	channelDSP = 'channelDSP',
+	channelOn = 'channelOn',
+	channelStatus = 'channelStatus',
+	globalLearn = 'globalLearn',
+	globalOn = 'globalOn',
+	fallbackMode = 'fallbackMode',
+}
+
 export const colours = {
-	red: combineRgb(255, 0, 0),
-	green: combineRgb(0, 204, 0),
-	blue: combineRgb(0, 0, 255),
 	white: combineRgb(255, 255, 255),
 	black: combineRgb(0, 0, 0),
 	dnsLightBlue: combineRgb(0, 222, 222),
 	dnsDarkBlue: combineRgb(0, 111, 111),
 	dnsGrey: combineRgb(91, 91, 91),
 	dnsDarkGrey: combineRgb(64, 64, 64),
+}
+
+const styles = {
+	dnsLightBlue: {
+		bgcolor: colours.dnsLightBlue,
+		color: colours.black,
+	},
 }
 
 const meterColours = {
@@ -61,12 +76,19 @@ const markerDefault: graphics.OptionsRect = {
 	offsetY: 5,
 }
 
-const styles = {
-	dnsLightBlue: {
-		bgcolor: colours.dnsLightBlue,
-		color: colours.black,
-	},
+function meterValue(value: number, type: 'atten' | 'power'): number {
+	switch (type) {
+		case 'atten':
+			return Math.abs(value * 5)
+		case 'power':
+			return 100 - Math.abs(value) * 1.25
+	}
 }
+
+function markerOffset(height: number, value: number): number {
+	return 5 + Math.round((height - 16) * ((Math.abs(value - 10) * 5) / 100))
+}
+
 function buildIcon(chan: DNS8Channel, width = 72, height = 72): Uint8Array {
 	const elements: Uint8Array[] = []
 	const defaults = {
@@ -75,30 +97,34 @@ function buildIcon(chan: DNS8Channel, width = 72, height = 72): Uint8Array {
 		height: height,
 		barLength: height - 16,
 	}
+	const meterDark = chan.dsp ? meterColours.darkBlue : meterColours.darkGrey
+	const meterLight = chan.dsp ? meterColours.lightBlue : meterColours.grey
+	const meter1offsetX = width - 16
+	const meter2offsetX = width - 8
 	const atten1: graphics.OptionsBar = {
 		...defaults,
-		value: Math.abs(chan.active1 * 5),
-		colors: chan.dsp ? meterColours.darkBlue : meterColours.darkGrey,
-		offsetX: width - 16,
+		value: meterValue(chan.active1, 'atten'),
+		colors: meterDark,
+		offsetX: meter1offsetX,
 	}
 	const atten2: graphics.OptionsBar = {
 		...defaults,
-		value: Math.abs(chan.active2 * 5),
-		colors: chan.dsp ? meterColours.lightBlue : meterColours.grey,
-		offsetX: width - 16,
+		value: meterValue(chan.active2, 'atten'),
+		colors: meterLight,
+		offsetX: meter1offsetX,
 	}
 	const power1: graphics.OptionsBar = {
 		...defaults,
-		value: 100 - Math.abs(chan.power1) * 1.25,
-		colors: chan.dsp ? meterColours.darkBlue : meterColours.darkGrey,
-		offsetX: width - 8,
+		value: meterValue(chan.power1, 'power'),
+		colors: meterDark,
+		offsetX: meter2offsetX,
 		reverse: false,
 	}
 	const power2: graphics.OptionsBar = {
 		...defaults,
-		value: 100 - Math.abs(chan.power2) * 1.25,
-		colors: chan.dsp ? meterColours.lightBlue : meterColours.grey,
-		offsetX: width - 8,
+		value: meterValue(chan.power2, 'power'),
+		colors: meterLight,
+		offsetX: meter2offsetX,
 		reverse: false,
 	}
 	const learnRect: graphics.OptionsRect = {
@@ -107,7 +133,7 @@ function buildIcon(chan: DNS8Channel, width = 72, height = 72): Uint8Array {
 		height: height,
 		color: chan.learn ? colours.dnsDarkBlue : colours.dnsDarkGrey,
 		fillColor: chan.learn ? colours.dnsLightBlue : colours.dnsGrey,
-		offsetX: width - 16,
+		offsetX: meter1offsetX,
 		offsetY: height - 8,
 	}
 	const dnsRect: graphics.OptionsRect = {
@@ -116,22 +142,22 @@ function buildIcon(chan: DNS8Channel, width = 72, height = 72): Uint8Array {
 		height: height,
 		color: chan.on ? colours.dnsDarkBlue : colours.dnsDarkGrey,
 		fillColor: chan.on ? colours.dnsLightBlue : colours.dnsGrey,
-		offsetX: width - 8,
+		offsetX: meter2offsetX,
 		offsetY: height - 8,
 	}
 	const attenMarker: graphics.OptionsRect = {
 		...markerDefault,
 		width: width,
 		height: height,
-		offsetX: width - 17,
-		offsetY: 5 + Math.round((height - 16) * ((Math.abs(chan.atten) * 5) / 100)),
+		offsetX: meter1offsetX - 1,
+		offsetY: markerOffset(height, chan.atten),
 	}
 	const biasMarker: graphics.OptionsRect = {
 		...markerDefault,
 		width: width,
 		height: height,
-		offsetX: width - 9,
-		offsetY: 5 + Math.round((height - 16) * ((Math.abs(chan.bias - 10) * 5) / 100)),
+		offsetX: meter2offsetX - 1,
+		offsetY: markerOffset(height, chan.bias),
 		color: colours.dnsGrey,
 		fillColor: colours.black,
 	}
@@ -146,38 +172,19 @@ function buildIcon(chan: DNS8Channel, width = 72, height = 72): Uint8Array {
 	return graphics.stackImage(elements)
 }
 
-export enum FeedbackId {
-	channelLearn = 'channelLearn',
-	channelDSP = 'channelDSP',
-	channelOn = 'channelOn',
-	channelStatus = 'channelStatus',
-	globalLearn = 'globalLearn',
-	globalOn = 'globalOn',
-	fallbackMode = 'fallbackMode',
-}
-
 export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 	const channels: DropdownChoice[] = []
 	for (let i = 1; i <= 8; i++) {
 		const chan = self.getChannel(i)
 		channels.push({ id: i, label: chan.name })
 	}
+	const chanList = { ...channelOption, choices: channels }
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackDefinition | undefined } = {
 		[FeedbackId.channelLearn]: {
 			name: 'Channel Learn',
 			type: 'boolean',
 			defaultStyle: styles.dnsLightBlue,
-			options: [
-				{
-					id: 'channel',
-					type: 'dropdown',
-					label: 'Channel',
-					choices: channels,
-					default: 1,
-					allowCustom: true,
-					tooltip: 'Variable should return channel number',
-				},
-			],
+			options: [chanList],
 			callback: async (feedback, context) => {
 				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? '0'))
 				if (isNaN(id)) return false
@@ -189,17 +196,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			name: 'Channel DSP',
 			type: 'boolean',
 			defaultStyle: styles.dnsLightBlue,
-			options: [
-				{
-					id: 'channel',
-					type: 'dropdown',
-					label: 'Channel',
-					choices: channels,
-					default: 1,
-					allowCustom: true,
-					tooltip: 'Variable should return channel number',
-				},
-			],
+			options: [chanList],
 			callback: async (feedback, context) => {
 				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? '0'))
 				if (isNaN(id)) return false
@@ -211,17 +208,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			name: 'Channel On',
 			type: 'boolean',
 			defaultStyle: styles.dnsLightBlue,
-			options: [
-				{
-					id: 'channel',
-					type: 'dropdown',
-					label: 'Channel',
-					choices: channels,
-					default: 1,
-					allowCustom: true,
-					tooltip: 'Variable should return channel number',
-				},
-			],
+			options: [chanList],
 			callback: async (feedback, context) => {
 				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
 				if (isNaN(id)) return false
@@ -232,17 +219,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 		[FeedbackId.channelStatus]: {
 			name: 'Channel Status',
 			type: 'advanced',
-			options: [
-				{
-					id: 'channel',
-					type: 'dropdown',
-					label: 'Channel',
-					choices: channels,
-					default: 1,
-					allowCustom: true,
-					tooltip: 'Variable should return channel number',
-				},
-			],
+			options: [chanList],
 			callback: async (feedback, context) => {
 				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
 				if (isNaN(id)) return {}
