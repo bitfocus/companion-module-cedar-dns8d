@@ -128,6 +128,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 					const chan = self.getChannel(id)
 					value += chan.atten
 				}
+				value = value > 0 ? 0 : value < -20 ? -20 : value
 				self.buildMessage(id, 'atten', value)
 			},
 		},
@@ -167,6 +168,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 					const chan = self.getChannel(id)
 					value += chan.bias
 				}
+				value = value > 10 ? 10 : value < -10 ? -10 : value
 				self.buildMessage(id, 'bias', value)
 			},
 		},
