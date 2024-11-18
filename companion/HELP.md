@@ -20,9 +20,9 @@ Tested with Firmware 1.5
 - Channel DSP
 - Channel On
 - Channel Status
+- Fallback Mode
 - Global Learn
 - Global On
-- Fallback Mode
 
 ### Variables
 
