@@ -110,6 +110,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 					label: 'Atten',
 					default: '-6',
 					useVariables: true,
+					tooltip: 'Range: -20 to 0',
 				},
 				{
 					id: 'relative',
@@ -148,6 +149,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 					label: 'Bias',
 					default: '0',
 					useVariables: true,
+					tooltip: 'Range: -10 to 10',
 				},
 				{
 					id: 'relative',
