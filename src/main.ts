@@ -64,7 +64,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 				active2: 0,
 				power1: 0,
 				power2: 0,
-				name: `Ch ${id}`,
+				name: `Ch ${chanId}`,
 				bias: 0,
 				atten: 0,
 				learn: false,
