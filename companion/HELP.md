@@ -24,6 +24,10 @@ Tested with Firmware 1.5
 - Global Learn
 - Global On
 
+### Presets
+
+- Channel Status
+
 ### Variables
 
 - Channel Active Reduction (Max)
