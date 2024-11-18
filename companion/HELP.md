@@ -40,8 +40,8 @@ Tested with Firmware 1.5
 - Channel Name
 - Channel Power (Signal)
 - Channel Power (Noise)
+- Global DSP Version
+- Global Fallback Mode
 - Global Learn
 - Global On
-- Global Fallback Mode
-- Global DSP Version
 - Global Sofware Version
