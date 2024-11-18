@@ -160,7 +160,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 	const channels: DropdownChoice[] = []
 	for (let i = 1; i <= 8; i++) {
 		const chan = self.getChannel(i)
-		channels[i - 1] = { id: i, label: chan.name }
+		channels.push({ id: i, label: chan.name })
 	}
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackDefinition | undefined } = {
 		[FeedbackId.channelLearn]: {

@@ -1,5 +1,6 @@
 import type { CedarDNS8DInstance } from './main.js'
 import type { CompanionPresetDefinitions } from '@companion-module/base'
+import { ActionId } from './actions.js'
 import { colours, FeedbackId } from './feedbacks.js'
 export function UpdatePresets(self: CedarDNS8DInstance): void {
 	const presets: CompanionPresetDefinitions = {}
@@ -20,7 +21,17 @@ export function UpdatePresets(self: CedarDNS8DInstance): void {
 			},
 			steps: [
 				{
-					down: [],
+					down: [
+						{
+							actionId: ActionId.channelOn,
+							options: {
+								channel: i,
+								value: '2',
+							},
+							delay: 0,
+							headline: `Toggle DNS`,
+						},
+					],
 					up: [],
 				},
 			],

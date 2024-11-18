@@ -2,7 +2,7 @@ import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField }
 import { GetConfigFields, type ModuleConfig } from './config.js'
 import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
-import { UpdateActions } from './actions.js'
+import { ActionId, UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { UpdatePresets } from './presets.js'
 import { XMLParser } from 'fast-xml-parser'
@@ -43,6 +43,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 	private socket!: WebSocket
 	private pollTimer: NodeJS.Timeout | undefined = undefined
 	private reconnectTimer: NodeJS.Timeout | undefined = undefined
+	private isRecordingActions: boolean = false
 	public dns8d: dns8d = {
 		globalOn: false,
 		globalLearn: false,
@@ -71,6 +72,54 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 			}
 		}
 		return this.dns8d.channels[id]
+	}
+
+	public buildMessage(
+		channel: number,
+		parameter: 'learn' | 'on' | 'bias' | 'atten' | 'name',
+		value: string | number,
+	): void {
+		if (channel < 0 || channel > 8) return
+		if (channel === 0 && !(parameter === 'learn' || parameter === 'on')) return
+		if (parameter === 'bias' && (isNaN(Number(value)) || Number(value) > 10 || Number(value) < -10)) return
+		if (parameter === 'atten' && (isNaN(Number(value)) || Number(value) > 0 || Number(value) < -20)) return
+		if ((parameter === 'learn' || parameter === 'on') && !(value === '1' || value === '0')) return
+		const safeValue = value.toString().substring(0, 17)
+		let message = '<dns8>'
+		for (let i = 1; i <= 8; i++) {
+			if (i === channel) {
+				message += `<chan idx="${i - 1}">`
+				message += parameter === 'name' ? `<name>${safeValue}</name>` : `<name/>`
+				message += parameter === 'bias' ? `<bias dB="${safeValue}"/>` : `<bias/>`
+				message += parameter === 'atten' ? `<atten dB="${safeValue}"/>` : `<atten/>`
+				if (parameter === 'learn') {
+					message += `<dns learn="${safeValue}"/>`
+				} else if (parameter === 'on') {
+					message += `<dns on="${safeValue}"/>`
+				} else {
+					message += `<dns/>`
+				}
+				message += `</chan>`
+			} else {
+				message += `<chan idx="${i - 1}"><name/><bias/><atten/><dns/></chan>`
+			}
+		}
+		message +=
+			'<group idx="0"><name/><bias/><atten/><band idx="0"><bias/><atten/></band><band idx="1"><bias/><atten/></band><band idx="2"><bias/><atten/></band><band idx="3"><bias/><atten/></band><band idx="4"><bias/><atten/></band><band idx="5"><bias/><atten/></band></group>'
+		if (channel === 0) {
+			if (parameter === 'learn') {
+				message += `<global learn="${safeValue}"/>`
+			} else if (parameter === 'on') {
+				message += `<global on="${safeValue}"/>`
+			} else {
+				message += `<global/>`
+			}
+		} else {
+			message += `<global/>`
+		}
+		message += '</dns8>'
+		//console.log(message)
+		this.sendMessage(message).catch(() => {})
 	}
 
 	public async sendMessage(message: string, priority = 1): Promise<void> {
@@ -187,17 +236,45 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		UpdateVariableDefinitions(this)
 	}
 
+	public handleStartStopRecordActions(isRecording: boolean): void {
+		this.isRecordingActions = isRecording
+	}
+
+	addToActionRecording(action: ActionId, value: string, channel: number = 0): void {
+		if (this.isRecordingActions) {
+			this.recordAction(
+				{
+					actionId: action,
+					options: {
+						channel: channel.toString(),
+						value: value.toString(),
+						relative: false,
+					},
+				},
+				`${action} ${channel}`,
+			)
+		}
+	}
+
 	setVarValues(message: string): void {
 		const data = parser.parse(message)
 		let updateActionsFeedbacks = false
-		this.dns8d.globalOn =
+		const globalOn =
 			data?.dns8d?.global[`@_on`] == '1' ? true : data?.dns8d?.global[`@_on`] == '0' ? false : this.dns8d.globalOn
-		this.dns8d.globalLearn =
+		const globalLearn =
 			data?.dns8d?.global[`@_learn`] == '1'
 				? true
 				: data?.dns8d?.global[`@_learn`] == '0'
 					? false
 					: this.dns8d.globalLearn
+		if (this.dns8d.globalOn !== globalOn) {
+			this.dns8d.globalOn = globalOn
+			this.addToActionRecording(ActionId.globalOn, globalOn ? '1' : '0', 0)
+		}
+		if (this.dns8d.globalLearn !== globalLearn) {
+			this.dns8d.globalLearn = globalLearn
+			this.addToActionRecording(ActionId.globalLearn, globalLearn ? '1' : '0', 0)
+		}
 		this.dns8d.fallbackMode =
 			data?.dns8d?.global[`@_fallbackmode`] == '1'
 				? true
@@ -216,18 +293,35 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		for (let i = 1; i <= 8; i++) {
 			const chan = this.getChannel(i)
 			const name = data?.dns8d?.chan[i - 1]?.name?.toString() ?? chan.name
+			const bias = Number(data?.dns8d?.chan[i - 1]?.bias?.[`@_dB`] ?? chan.bias)
+			const atten = Number(data?.dns8d?.chan[i - 1]?.atten?.[`@_dB`] ?? chan.atten)
+			const learn = data?.dns8d?.chan[i - 1]?.dns?.[`@_learn`] == '1' ? true : false
+			const on = data?.dns8d?.chan[i - 1]?.dns?.[`@_on`] == '1' ? true : false
 			chan.active1 = Number(data?.dns8d?.chan[i - 1]?.activ.split(' ')[0] ?? chan.active1)
 			chan.active2 = Number(data?.dns8d?.chan[i - 1]?.activ.split(' ')[1] ?? chan.active2)
 			chan.power1 = Number(data?.dns8d?.chan[i - 1]?.power.split(' ')[0] ?? chan.power1)
 			chan.power2 = Number(data?.dns8d?.chan[i - 1]?.power.split(' ')[1] ?? chan.power2)
-			chan.bias = Number(data?.dns8d?.chan[i - 1]?.bias?.[`@_dB`] ?? chan.bias)
-			chan.atten = Number(data?.dns8d?.chan[i - 1]?.atten?.[`@_dB`] ?? chan.atten)
-			chan.learn = data?.dns8d?.chan[i - 1]?.dns?.[`@_learn`] == '1' ? true : false
 			chan.dsp = data?.dns8d?.chan[i - 1]?.dns?.[`@_dsp`] == '1' ? true : false
-			chan.on = data?.dns8d?.chan[i - 1]?.dns?.[`@_on`] == '1' ? true : false
 			if (chan.name !== name) {
 				chan.name = name
 				updateActionsFeedbacks = true //update to reflect name change
+				this.addToActionRecording(ActionId.channelName, name, i)
+			}
+			if (chan.bias !== bias) {
+				chan.bias = bias
+				this.addToActionRecording(ActionId.channelBias, bias.toString(), i)
+			}
+			if (chan.atten !== atten) {
+				chan.atten = atten
+				this.addToActionRecording(ActionId.channelAtten, atten.toString(), i)
+			}
+			if (chan.learn !== learn) {
+				chan.learn = learn
+				this.addToActionRecording(ActionId.channelLearn, learn ? '1' : '0', i)
+			}
+			if (chan.on !== on) {
+				chan.on = on
+				this.addToActionRecording(ActionId.channelOn, on ? '1' : '0', i)
 			}
 			varList = {
 				...varList,
