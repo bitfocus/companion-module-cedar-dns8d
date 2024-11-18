@@ -1,4 +1,10 @@
-import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
+import {
+	InstanceBase,
+	runEntrypoint,
+	InstanceStatus,
+	SomeCompanionConfigField,
+	CompanionOptionValues,
+} from '@companion-module/base'
 import { GetConfigFields, type ModuleConfig } from './config.js'
 import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
@@ -243,14 +249,24 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 
 	addToActionRecording(action: ActionId, value: string, channel: number = 0): void {
 		if (this.isRecordingActions) {
+			const actOptions: CompanionOptionValues = {
+				value: value,
+			}
+			switch (action) {
+				case ActionId.channelAtten:
+				case ActionId.channelBias:
+					actOptions.relative = false
+					actOptions.channel = channel
+					break
+				case ActionId.channelLearn:
+				case ActionId.channelName:
+				case ActionId.channelOn:
+					actOptions.channel = channel
+			}
 			this.recordAction(
 				{
 					actionId: action,
-					options: {
-						channel: channel.toString(),
-						value: value.toString(),
-						relative: false,
-					},
+					options: actOptions,
 				},
 				`${action} ${channel}`,
 			)
