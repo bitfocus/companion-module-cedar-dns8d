@@ -142,7 +142,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		)
 	}
 
-	startPolling(interval: number): void {
+	startPolling(interval = this.config.interval): void {
 		if (this.pollTimer !== undefined) {
 			clearTimeout(this.pollTimer)
 		}
@@ -150,7 +150,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 			// only add a poll query if there isn't already one in the queue
 			this.sendMessage(pollMessage, 0).catch(() => {})
 		}
-		this.pollTimer = setTimeout(() => this.startPolling(interval), interval)
+		this.pollTimer = setTimeout(() => this.startPolling(), interval)
 	}
 
 	stopPolling(): void {
@@ -160,7 +160,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		}
 	}
 
-	newSocket(host: string, port: number = 80, interval: number = 40): void {
+	newSocket(host = this.config.host, port = this.config.port): void {
 		if (this.socket?.readyState === WebSocket.OPEN || this.socket?.readyState === WebSocket.CONNECTING) {
 			this.socket.close(1000, 'Resetting connection')
 		}
@@ -169,7 +169,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		this.socket.addEventListener('open', () => {
 			this.updateStatus(InstanceStatus.Ok)
 			this.log('info', `Connected to ws://${host}:${Math.floor(port)}/`)
-			this.startPolling(interval)
+			this.startPolling()
 			if (this.reconnectTimer) {
 				clearTimeout(this.reconnectTimer)
 				delete this.reconnectTimer
@@ -188,7 +188,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 			this.updateStatus(InstanceStatus.ConnectionFailure)
 			this.stopPolling()
 			queue.clear()
-			this.reconnectTimer = setTimeout(() => this.newSocket(host, port, interval), reconnectInterval)
+			this.reconnectTimer = setTimeout(() => this.newSocket(), reconnectInterval)
 		})
 	}
 
@@ -213,7 +213,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		this.stopPolling()
 		this.config = config
 		if (config.host) {
-			this.newSocket(config.host, config.port, config.interval)
+			this.newSocket()
 		} else {
 			this.updateStatus(InstanceStatus.BadConfig)
 		}
