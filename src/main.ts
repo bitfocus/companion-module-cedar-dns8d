@@ -16,12 +16,9 @@ import PQueue from 'p-queue'
 
 const reconnectInterval = 10000
 const pollMessage = `<dns8><chan idx="0"><name/><bias/><atten/><dns/></chan><chan idx="1"><name/><bias/><atten/><dns/></chan><chan idx="2"><name/><bias/><atten/><dns/></chan><chan idx="3"><name/><bias/><atten/><dns/></chan><chan idx="4"><name/><bias/><atten/><dns/></chan><chan idx="5"><name/><bias/><atten/><dns/></chan><chan idx="6"><name/><bias/><atten/><dns/></chan><chan idx="7"><name/><bias/><atten/><dns/></chan><group idx="0"><name/><bias/><atten/><band idx="0"><bias/><atten/></band><band idx="1"><bias/><atten/></band><band idx="2"><bias/><atten/></band><band idx="3"><bias/><atten/></band><band idx="4"><bias/><atten/></band><band idx="5"><bias/><atten/></band></group><global/></dns8>`
-const parserOptions = {
-	allowBooleanAttributes: true,
-	ignoreAttributes: false,
-}
+
 const queue = new PQueue({ concurrency: 1, interval: 5, intervalCap: 1 })
-const parser = new XMLParser(parserOptions)
+const parser = new XMLParser({ allowBooleanAttributes: true, ignoreAttributes: false })
 export interface DNS8Channel {
 	active1: number
 	active2: number
