@@ -85,8 +85,13 @@ function meterValue(value: number, type: 'atten' | 'power'): number {
 	}
 }
 
-function markerOffset(height: number, value: number): number {
-	return 5 + Math.round((height - 16) * ((Math.abs(value - 10) * 5) / 100))
+function markerOffset(height: number, value: number, type: 'atten' | 'bias'): number {
+	switch (type) {
+		case 'atten':
+			return 5 + Math.round((height - 16) * ((Math.abs(value) * 5) / 100))
+		case 'bias':
+			return 5 + Math.round((height - 16) * ((Math.abs(value - 10) * 5) / 100))
+	}
 }
 
 function buildIcon(chan: DNS8Channel, width = 72, height = 72): Uint8Array {
@@ -150,14 +155,14 @@ function buildIcon(chan: DNS8Channel, width = 72, height = 72): Uint8Array {
 		width: width,
 		height: height,
 		offsetX: meter1offsetX - 1,
-		offsetY: markerOffset(height, chan.atten),
+		offsetY: markerOffset(height, chan.atten, 'atten'),
 	}
 	const biasMarker: graphics.OptionsRect = {
 		...markerDefault,
 		width: width,
 		height: height,
 		offsetX: meter2offsetX - 1,
-		offsetY: markerOffset(height, chan.bias),
+		offsetY: markerOffset(height, chan.bias, 'bias'),
 		color: colours.dnsGrey,
 		fillColor: colours.black,
 	}

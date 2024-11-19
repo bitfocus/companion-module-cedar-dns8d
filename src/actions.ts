@@ -84,6 +84,18 @@ const relativeOption: CompanionInputFieldCheckbox = {
 	default: false,
 }
 
+function calcBooleanVal(actVal: string, curVal: boolean): string {
+	return actVal === '2' ? (!curVal ? '1' : '0') : actVal
+}
+
+function calcAttenBiasVal(actVal: number, curVal: number, rel: boolean, min: number, max: number): number {
+	let value = actVal
+	if (rel) {
+		value += curVal
+	}
+	return value > max ? max : value < min ? min : value
+}
+
 export function UpdateActions(self: CedarDNS8DInstance): void {
 	const channels: DropdownChoice[] = []
 	for (let i = 1; i <= 8; i++) {
@@ -99,12 +111,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
 				const chan = self.getChannel(id)
-				const value =
-					action.options['value']?.toString() === '2'
-						? !chan.learn
-							? '1'
-							: '0'
-						: (action.options['value']?.toString() ?? '0')
+				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', chan.learn)
 				self.buildMessage(id, 'learn', value)
 			},
 		},
@@ -115,12 +122,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
 				const chan = self.getChannel(id)
-				const value =
-					action.options['value']?.toString() === '2'
-						? !chan.on
-							? '1'
-							: '0'
-						: (action.options['value']?.toString() ?? '0')
+				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', chan.on)
 				self.buildMessage(id, 'on', value)
 			},
 		},
@@ -130,13 +132,8 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			callback: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
-				if (isNaN(id) || id < 1 || id > 8) return
-				if (isNaN(value)) return
-				if (action.options['relative']) {
-					const chan = self.getChannel(id)
-					value += chan.atten
-				}
-				value = value > 0 ? 0 : value < -20 ? -20 : value
+				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
+				value = calcAttenBiasVal(value, self.getChannel(id).atten, Boolean(action.options['relative']), -20, 0)
 				self.buildMessage(id, 'atten', value)
 			},
 		},
@@ -146,13 +143,8 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			callback: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
-				if (isNaN(id) || id < 1 || id > 8) return
-				if (isNaN(value)) return
-				if (action.options['relative']) {
-					const chan = self.getChannel(id)
-					value += chan.bias
-				}
-				value = value > 10 ? 10 : value < -10 ? -10 : value
+				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
+				value = calcAttenBiasVal(value, self.getChannel(id).bias, Boolean(action.options['relative']), -10, 10)
 				self.buildMessage(id, 'bias', value)
 			},
 		},
@@ -170,12 +162,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			name: 'Global Learn',
 			options: [learnOption],
 			callback: (action) => {
-				const value =
-					action.options['value']?.toString() === '2'
-						? !self.dns8d.globalLearn
-							? '1'
-							: '0'
-						: (action.options['value']?.toString() ?? '0')
+				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.dns8d.globalLearn)
 				self.buildMessage(0, 'learn', value)
 			},
 		},
@@ -183,12 +170,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			name: 'Global On',
 			options: [onOption],
 			callback: (action) => {
-				const value =
-					action.options['value']?.toString() === '2'
-						? !self.dns8d.globalOn
-							? '1'
-							: '0'
-						: (action.options['value']?.toString() ?? '0')
+				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.dns8d.globalOn)
 				self.buildMessage(0, 'on', value)
 			},
 		},
