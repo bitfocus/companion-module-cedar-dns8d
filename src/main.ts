@@ -193,9 +193,6 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 	}
 
 	async init(config: ModuleConfig): Promise<void> {
-		for (let i = 1; i <= 8; i++) {
-			this.getChannel(i)
-		}
 		this.updateStatus(InstanceStatus.Connecting)
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
