@@ -36,6 +36,7 @@ export function BuildMessage(
 		message += ParameterType.AttenuatiuonBand && band === i ? `<atten dB="${safeValue}"/>` : `<atten/>`
 		message += `</band>`
 	}
+	message += `</group>`
 	message += `<global`
 	message += parameter === ParameterType.Learn && 0 === channel ? ` learn="${safeValue}"` : ''
 	message += parameter === ParameterType.On && 0 === channel ? ` on="${safeValue}"` : ''
