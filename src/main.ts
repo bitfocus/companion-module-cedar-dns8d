@@ -11,7 +11,6 @@ import { UpdatePresets } from './presets.js'
 import PQueue from 'p-queue'
 
 const reconnectInterval = 10000
-const pollMessage = `<dns8><chan idx="0"><name/><bias/><atten/><dns/></chan><chan idx="1"><name/><bias/><atten/><dns/></chan><chan idx="2"><name/><bias/><atten/><dns/></chan><chan idx="3"><name/><bias/><atten/><dns/></chan><chan idx="4"><name/><bias/><atten/><dns/></chan><chan idx="5"><name/><bias/><atten/><dns/></chan><chan idx="6"><name/><bias/><atten/><dns/></chan><chan idx="7"><name/><bias/><atten/><dns/></chan><group idx="0"><name/><bias/><atten/><band idx="0"><bias/><atten/></band><band idx="1"><bias/><atten/></band><band idx="2"><bias/><atten/></band><band idx="3"><bias/><atten/></band><band idx="4"><bias/><atten/></band><band idx="5"><bias/><atten/></band></group><global/></dns8>`
 
 const queue = new PQueue({ concurrency: 1, interval: 5, intervalCap: 1 })
 export interface DNS8Channel {
@@ -34,6 +33,7 @@ export interface dns8d {
 	swVersion: number
 	dspVersion: number
 	channels: DNS8Channel[]
+	selectedGroup: number
 }
 
 export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
@@ -49,6 +49,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		swVersion: 0,
 		dspVersion: 0,
 		channels: [],
+		selectedGroup: 1,
 	}
 	constructor(internal: unknown) {
 		super(internal)
@@ -73,8 +74,15 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		return this.dns8d.channels[chanId]
 	}
 
-	public buildMessage(channel: number, parameter: ParameterType, value: string | number): void {
-		BuildMessage(channel, parameter, value, this)
+	public buildMessage(
+		channel: number,
+		parameter: ParameterType,
+		value: string | number,
+		group = this.dns8d.selectedGroup,
+		band = 1,
+		priority = 1,
+	): void {
+		this.sendMessage(BuildMessage(channel, parameter, value, group, band), priority).catch(() => {})
 	}
 
 	public async sendMessage(message: string, priority = 1): Promise<void> {
@@ -94,9 +102,10 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		if (this.pollTimer !== undefined) {
 			clearTimeout(this.pollTimer)
 		}
-		if (queue.sizeBy({ priority: 0 }) === 0) {
-			// only add a poll query if there isn't already one in the queue
-			this.sendMessage(pollMessage, 0).catch(() => {})
+		if (queue.size === 0) {
+			// only add a poll query if there isn't already a message in the queue
+			this.buildMessage(0, ParameterType.None, 0, this.dns8d.selectedGroup, 1, 0)
+			//this.sendMessage(pollMessage, 0).catch(() => {})
 		}
 		this.pollTimer = setTimeout(() => this.startPolling(), interval)
 	}

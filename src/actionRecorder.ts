@@ -2,6 +2,7 @@ import { CompanionOptionValues } from '@companion-module/base'
 import { ActionId } from './actions.js'
 import type { CedarDNS8DInstance } from './main.js'
 import { parseStringFromBoolean } from './utils.js'
+
 export function AddToActionRecording(
 	action: ActionId,
 	value: string | number | boolean,

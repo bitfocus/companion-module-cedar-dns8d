@@ -4,6 +4,26 @@ import type {
 	CompanionInputFieldCheckbox,
 } from '@companion-module/base'
 
+const onOffToggle: CompanionInputFieldDropdown = {
+	id: 'value',
+	type: 'dropdown',
+	label: '',
+	choices: [
+		{ id: '1', label: 'On' },
+		{ id: '0', label: 'Off' },
+		{ id: '2', label: 'Toggle' },
+	],
+	default: '2',
+}
+
+const textOptionWithVariables: CompanionInputFieldTextInput = {
+	id: 'value',
+	type: 'textinput',
+	label: '',
+	default: '',
+	useVariables: true,
+}
+
 export const channelOption: CompanionInputFieldDropdown = {
 	id: 'channel',
 	type: 'dropdown',
@@ -15,53 +35,32 @@ export const channelOption: CompanionInputFieldDropdown = {
 }
 
 export const learnOption: CompanionInputFieldDropdown = {
-	id: 'value',
-	type: 'dropdown',
+	...onOffToggle,
 	label: 'Learn',
-	choices: [
-		{ id: '1', label: 'On' },
-		{ id: '0', label: 'Off' },
-		{ id: '2', label: 'Toggle' },
-	],
-	default: '2',
 }
 
 export const onOption: CompanionInputFieldDropdown = {
-	id: 'value',
-	type: 'dropdown',
+	...onOffToggle,
 	label: 'On',
-	choices: [
-		{ id: '1', label: 'On' },
-		{ id: '0', label: 'Off' },
-		{ id: '2', label: 'Toggle' },
-	],
-	default: '2',
 }
 
 export const attenOption: CompanionInputFieldTextInput = {
-	id: 'value',
-	type: 'textinput',
+	...textOptionWithVariables,
 	label: 'Atten',
 	default: '-6',
-	useVariables: true,
 	tooltip: 'Range: -20 to 0',
 }
 
 export const biasOption: CompanionInputFieldTextInput = {
-	id: 'value',
-	type: 'textinput',
+	...textOptionWithVariables,
 	label: 'Bias',
 	default: '0',
-	useVariables: true,
 	tooltip: 'Range: -10 to 10',
 }
 
 export const nameOption: CompanionInputFieldTextInput = {
-	id: 'value',
-	type: 'textinput',
+	...textOptionWithVariables,
 	label: 'Name',
-	default: '',
-	useVariables: true,
 }
 
 export const relativeOption: CompanionInputFieldCheckbox = {
