@@ -12,7 +12,7 @@ import PQueue from 'p-queue'
 
 const reconnectInterval = 10000
 
-const queue = new PQueue({ concurrency: 1, interval: 5, intervalCap: 1 })
+const queue = new PQueue({ concurrency: 1, interval: 40, intervalCap: 1 })
 export interface DNS8Channel {
 	active1: number
 	active2: number
