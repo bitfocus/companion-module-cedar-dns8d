@@ -29,7 +29,6 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			callback: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
-				const chan = self.getChannel(id)
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).learn)
 				self.buildMessage(id, 'learn', value)
 			},
@@ -45,8 +44,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			callback: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
-				const chan = self.getChannel(id)
-				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', chan.on)
+				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).on)
 				self.buildMessage(id, 'on', value)
 			},
 			learn: async (action, context) => {
