@@ -1,9 +1,7 @@
 import type { CedarDNS8DInstance } from './main.js'
 import { CompanionActionDefinition, DropdownChoice } from '@companion-module/base'
 import { channelOption, learnOption, onOption, attenOption, biasOption, nameOption, relativeOption } from './options.js'
-import { parseStringFromBoolean } from './utils.js'
-
-import { calcBooleanVal, calcAttenBiasVal } from './utils.js'
+import { calcBooleanVal, calcAttenBiasVal, parseStringFromBoolean } from './utils.js'
 
 export enum ActionId {
 	channelLearn = 'channelLearn',
