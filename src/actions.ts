@@ -1,11 +1,9 @@
 import type { CedarDNS8DInstance } from './main.js'
-import {
-	CompanionActionDefinition,
-	CompanionInputFieldCheckbox,
-	CompanionInputFieldDropdown,
-	CompanionInputFieldTextInput,
-	DropdownChoice,
-} from '@companion-module/base'
+import { CompanionActionDefinition, DropdownChoice } from '@companion-module/base'
+import { channelOption, learnOption, onOption, attenOption, biasOption, nameOption, relativeOption } from './options.js'
+import { parseStringFromBoolean } from './utils.js'
+
+import { calcBooleanVal, calcAttenBiasVal } from './utils.js'
 
 export enum ActionId {
 	channelLearn = 'channelLearn',
@@ -15,85 +13,6 @@ export enum ActionId {
 	channelName = 'channelName',
 	globalLearn = 'globalLearn',
 	globalOn = 'globalOn',
-}
-
-export const channelOption: CompanionInputFieldDropdown = {
-	id: 'channel',
-	type: 'dropdown',
-	label: 'Channel',
-	default: 1,
-	allowCustom: true,
-	tooltip: 'Variable should return channel number',
-	choices: [],
-}
-
-const learnOption: CompanionInputFieldDropdown = {
-	id: 'value',
-	type: 'dropdown',
-	label: 'Learn',
-	choices: [
-		{ id: '1', label: 'On' },
-		{ id: '0', label: 'Off' },
-		{ id: '2', label: 'Toggle' },
-	],
-	default: '2',
-}
-
-const onOption: CompanionInputFieldDropdown = {
-	id: 'value',
-	type: 'dropdown',
-	label: 'On',
-	choices: [
-		{ id: '1', label: 'On' },
-		{ id: '0', label: 'Off' },
-		{ id: '2', label: 'Toggle' },
-	],
-	default: '2',
-}
-
-const attenOption: CompanionInputFieldTextInput = {
-	id: 'value',
-	type: 'textinput',
-	label: 'Atten',
-	default: '-6',
-	useVariables: true,
-	tooltip: 'Range: -20 to 0',
-}
-
-const biasOption: CompanionInputFieldTextInput = {
-	id: 'value',
-	type: 'textinput',
-	label: 'Bias',
-	default: '0',
-	useVariables: true,
-	tooltip: 'Range: -10 to 10',
-}
-
-const nameOption: CompanionInputFieldTextInput = {
-	id: 'value',
-	type: 'textinput',
-	label: 'Name',
-	default: '',
-	useVariables: true,
-}
-
-const relativeOption: CompanionInputFieldCheckbox = {
-	id: 'relative',
-	type: 'checkbox',
-	label: 'Relative',
-	default: false,
-}
-
-function calcBooleanVal(actVal: string, curVal: boolean): string {
-	return actVal === '2' ? (!curVal ? '1' : '0') : actVal
-}
-
-function calcAttenBiasVal(actVal: number, curVal: number, rel: boolean, min: number, max: number): number {
-	let value = actVal
-	if (rel) {
-		value += curVal
-	}
-	return value > max ? max : value < min ? min : value
 }
 
 export function UpdateActions(self: CedarDNS8DInstance): void {
@@ -111,8 +30,13 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
 				const chan = self.getChannel(id)
-				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', chan.learn)
+				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).learn)
 				self.buildMessage(id, 'learn', value)
+			},
+			learn: async (action, context) => {
+				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+				if (isNaN(id) || id < 1 || id > 8) return undefined
+				return { ...action.options, value: parseStringFromBoolean(self.getChannel(id).learn) }
 			},
 		},
 		[ActionId.channelOn]: {
@@ -125,6 +49,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', chan.on)
 				self.buildMessage(id, 'on', value)
 			},
+			learn: async (action, context) => {
+				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+				if (isNaN(id) || id < 1 || id > 8) return undefined
+				return { ...action.options, value: parseStringFromBoolean(self.getChannel(id).on) }
+			},
 		},
 		[ActionId.channelAtten]: {
 			name: 'Channel Attenuatiuon',
@@ -135,6 +64,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getChannel(id).atten, Boolean(action.options['relative']), -20, 0)
 				self.buildMessage(id, 'atten', value)
+			},
+			learn: async (action, context) => {
+				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+				if (isNaN(id) || id < 1 || id > 8) return undefined
+				return { ...action.options, value: self.getChannel(id).atten.toString(), relative: false }
 			},
 		},
 		[ActionId.channelBias]: {
@@ -147,6 +81,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				value = calcAttenBiasVal(value, self.getChannel(id).bias, Boolean(action.options['relative']), -10, 10)
 				self.buildMessage(id, 'bias', value)
 			},
+			learn: async (action, context) => {
+				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+				if (isNaN(id) || id < 1 || id > 8) return undefined
+				return { ...action.options, value: self.getChannel(id).bias.toString(), relative: false }
+			},
 		},
 		[ActionId.channelName]: {
 			name: 'Channel Name',
@@ -157,6 +96,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				if (isNaN(id) || id < 1 || id > 8) return
 				self.buildMessage(id, 'name', value)
 			},
+			learn: async (action, context) => {
+				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+				if (isNaN(id) || id < 1 || id > 8) return undefined
+				return { ...action.options, value: self.getChannel(id).name }
+			},
 		},
 		[ActionId.globalLearn]: {
 			name: 'Global Learn',
@@ -165,6 +109,9 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.dns8d.globalLearn)
 				self.buildMessage(0, 'learn', value)
 			},
+			learn: async (action) => {
+				return { ...action.options, value: parseStringFromBoolean(self.dns8d.globalLearn) }
+			},
 		},
 		[ActionId.globalOn]: {
 			name: 'Global On',
@@ -172,6 +119,9 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			callback: (action) => {
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.dns8d.globalOn)
 				self.buildMessage(0, 'on', value)
+			},
+			learn: async (action) => {
+				return { ...action.options, value: parseStringFromBoolean(self.dns8d.globalOn) }
 			},
 		},
 	}

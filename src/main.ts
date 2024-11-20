@@ -1,24 +1,19 @@
-import {
-	InstanceBase,
-	runEntrypoint,
-	InstanceStatus,
-	SomeCompanionConfigField,
-	CompanionOptionValues,
-} from '@companion-module/base'
+import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
 import { GetConfigFields, type ModuleConfig } from './config.js'
 import { UpdateVariableDefinitions } from './variables.js'
+import { SetVarValues } from './updateVariableValues.js'
 import { UpgradeScripts } from './upgrades.js'
 import { ActionId, UpdateActions } from './actions.js'
+import { AddToActionRecording } from './actionRecorder.js'
+import { BuildMessage } from './message.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { UpdatePresets } from './presets.js'
-import { XMLParser } from 'fast-xml-parser'
 import PQueue from 'p-queue'
 
 const reconnectInterval = 10000
 const pollMessage = `<dns8><chan idx="0"><name/><bias/><atten/><dns/></chan><chan idx="1"><name/><bias/><atten/><dns/></chan><chan idx="2"><name/><bias/><atten/><dns/></chan><chan idx="3"><name/><bias/><atten/><dns/></chan><chan idx="4"><name/><bias/><atten/><dns/></chan><chan idx="5"><name/><bias/><atten/><dns/></chan><chan idx="6"><name/><bias/><atten/><dns/></chan><chan idx="7"><name/><bias/><atten/><dns/></chan><group idx="0"><name/><bias/><atten/><band idx="0"><bias/><atten/></band><band idx="1"><bias/><atten/></band><band idx="2"><bias/><atten/></band><band idx="3"><bias/><atten/></band><band idx="4"><bias/><atten/></band><band idx="5"><bias/><atten/></band></group><global/></dns8>`
 
 const queue = new PQueue({ concurrency: 1, interval: 5, intervalCap: 1 })
-const parser = new XMLParser({ allowBooleanAttributes: true, ignoreAttributes: false })
 export interface DNS8Channel {
 	active1: number
 	active2: number
@@ -46,7 +41,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 	private socket!: WebSocket
 	private pollTimer: NodeJS.Timeout | undefined = undefined
 	private reconnectTimer: NodeJS.Timeout | undefined = undefined
-	private isRecordingActions: boolean = false
+	public isRecordingActions: boolean = false
 	public dns8d: dns8d = {
 		globalOn: false,
 		globalLearn: false,
@@ -83,47 +78,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		parameter: 'learn' | 'on' | 'bias' | 'atten' | 'name',
 		value: string | number,
 	): void {
-		if (channel < 0 || channel > 8) return
-		if (channel === 0 && !(parameter === 'learn' || parameter === 'on')) return
-		if (parameter === 'bias' && (isNaN(Number(value)) || Number(value) > 10 || Number(value) < -10)) return
-		if (parameter === 'atten' && (isNaN(Number(value)) || Number(value) > 0 || Number(value) < -20)) return
-		if ((parameter === 'learn' || parameter === 'on') && !(value === '1' || value === '0')) return
-		const safeValue = value.toString().substring(0, 17)
-		let message = '<dns8>'
-		for (let i = 1; i <= 8; i++) {
-			if (i === channel) {
-				message += `<chan idx="${i - 1}">`
-				message += parameter === 'name' ? `<name>${safeValue}</name>` : `<name/>`
-				message += parameter === 'bias' ? `<bias dB="${safeValue}"/>` : `<bias/>`
-				message += parameter === 'atten' ? `<atten dB="${safeValue}"/>` : `<atten/>`
-				if (parameter === 'learn') {
-					message += `<dns learn="${safeValue}"/>`
-				} else if (parameter === 'on') {
-					message += `<dns on="${safeValue}"/>`
-				} else {
-					message += `<dns/>`
-				}
-				message += `</chan>`
-			} else {
-				message += `<chan idx="${i - 1}"><name/><bias/><atten/><dns/></chan>`
-			}
-		}
-		message +=
-			'<group idx="0"><name/><bias/><atten/><band idx="0"><bias/><atten/></band><band idx="1"><bias/><atten/></band><band idx="2"><bias/><atten/></band><band idx="3"><bias/><atten/></band><band idx="4"><bias/><atten/></band><band idx="5"><bias/><atten/></band></group>'
-		if (channel === 0) {
-			if (parameter === 'learn') {
-				message += `<global learn="${safeValue}"/>`
-			} else if (parameter === 'on') {
-				message += `<global on="${safeValue}"/>`
-			} else {
-				message += `<global/>`
-			}
-		} else {
-			message += `<global/>`
-		}
-		message += '</dns8>'
-		//console.log(message)
-		this.sendMessage(message).catch(() => {})
+		BuildMessage(channel, parameter, value, this)
 	}
 
 	public async sendMessage(message: string, priority = 1): Promise<void> {
@@ -241,119 +196,12 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		this.isRecordingActions = isRecording
 	}
 
-	addToActionRecording(action: ActionId, value: string, channel: number = 0): void {
-		if (this.isRecordingActions) {
-			const actOptions: CompanionOptionValues = {
-				value: value,
-			}
-			switch (action) {
-				case ActionId.channelAtten:
-				case ActionId.channelBias:
-					actOptions.relative = false
-					actOptions.channel = channel
-					break
-				case ActionId.channelLearn:
-				case ActionId.channelName:
-				case ActionId.channelOn:
-					actOptions.channel = channel
-			}
-			this.recordAction(
-				{
-					actionId: action,
-					options: actOptions,
-				},
-				`${action} ${channel}`,
-			)
-		}
+	addToActionRecording(action: ActionId, value: string | number | boolean, channel: number = 0): void {
+		AddToActionRecording(action, value, channel, this)
 	}
 
 	setVarValues(message: string): void {
-		const data = parser.parse(message)
-		let updateActionsFeedbacks = false
-		const globalOn =
-			data?.dns8d?.global[`@_on`] == '1' ? true : data?.dns8d?.global[`@_on`] == '0' ? false : this.dns8d.globalOn
-		const globalLearn =
-			data?.dns8d?.global[`@_learn`] == '1'
-				? true
-				: data?.dns8d?.global[`@_learn`] == '0'
-					? false
-					: this.dns8d.globalLearn
-		if (this.dns8d.globalOn !== globalOn) {
-			this.dns8d.globalOn = globalOn
-			this.addToActionRecording(ActionId.globalOn, globalOn ? '1' : '0', 0)
-		}
-		if (this.dns8d.globalLearn !== globalLearn) {
-			this.dns8d.globalLearn = globalLearn
-			this.addToActionRecording(ActionId.globalLearn, globalLearn ? '1' : '0', 0)
-		}
-		this.dns8d.fallbackMode =
-			data?.dns8d?.global[`@_fallbackmode`] == '1'
-				? true
-				: data?.dns8d?.global[`@_fallbackmode`] == '0'
-					? false
-					: this.dns8d.fallbackMode
-		this.dns8d.swVersion = Number(data?.dns8d?.global[`@_swVersion`] ?? this.dns8d.swVersion)
-		this.dns8d.dspVersion = Number(data?.dns8d?.global[`@_dspVersion`] ?? this.dns8d.dspVersion)
-		let varList = {
-			global_On: this.dns8d.globalOn,
-			global_Learn: this.dns8d.globalLearn,
-			global_FallbackMode: this.dns8d.fallbackMode,
-			global_swVersion: this.dns8d.swVersion,
-			global_dspVersion: this.dns8d.dspVersion,
-		}
-		for (let i = 1; i <= 8; i++) {
-			const chan = this.getChannel(i)
-			const name = data?.dns8d?.chan[i - 1]?.name?.toString() ?? chan.name
-			const bias = Number(data?.dns8d?.chan[i - 1]?.bias?.[`@_dB`] ?? chan.bias)
-			const atten = Number(data?.dns8d?.chan[i - 1]?.atten?.[`@_dB`] ?? chan.atten)
-			const learn = data?.dns8d?.chan[i - 1]?.dns?.[`@_learn`] == '1' ? true : false
-			const on = data?.dns8d?.chan[i - 1]?.dns?.[`@_on`] == '1' ? true : false
-			chan.active1 = Number(data?.dns8d?.chan[i - 1]?.activ.split(' ')[0] ?? chan.active1)
-			chan.active2 = Number(data?.dns8d?.chan[i - 1]?.activ.split(' ')[1] ?? chan.active2)
-			chan.power1 = Number(data?.dns8d?.chan[i - 1]?.power.split(' ')[0] ?? chan.power1)
-			chan.power2 = Number(data?.dns8d?.chan[i - 1]?.power.split(' ')[1] ?? chan.power2)
-			chan.dsp = data?.dns8d?.chan[i - 1]?.dns?.[`@_dsp`] == '1' ? true : false
-			if (chan.name !== name) {
-				chan.name = name
-				updateActionsFeedbacks = true //update to reflect name change
-				this.addToActionRecording(ActionId.channelName, name, i)
-			}
-			if (chan.bias !== bias) {
-				chan.bias = bias
-				this.addToActionRecording(ActionId.channelBias, bias.toString(), i)
-			}
-			if (chan.atten !== atten) {
-				chan.atten = atten
-				this.addToActionRecording(ActionId.channelAtten, atten.toString(), i)
-			}
-			if (chan.learn !== learn) {
-				chan.learn = learn
-				this.addToActionRecording(ActionId.channelLearn, learn ? '1' : '0', i)
-			}
-			if (chan.on !== on) {
-				chan.on = on
-				this.addToActionRecording(ActionId.channelOn, on ? '1' : '0', i)
-			}
-			varList = {
-				...varList,
-				[`channel${i}_Active1`]: chan.active1,
-				[`channel${i}_Active2`]: chan.active2,
-				[`channel${i}_Power1`]: chan.power1,
-				[`channel${i}_Power2`]: chan.power2,
-				[`channel${i}_Name`]: chan.name,
-				[`channel${i}_Bias`]: chan.bias,
-				[`channel${i}_Attenuation`]: chan.atten,
-				[`channel${i}_Learn`]: chan.learn,
-				[`channel${i}_DSP`]: chan.dsp,
-				[`channel${i}_On`]: chan.on,
-			}
-		}
-		this.setVariableValues(varList)
-		if (updateActionsFeedbacks) {
-			this.updateActions() // export actions
-			this.updateFeedbacks() // export feedbacks
-		}
-		this.checkFeedbacks()
+		SetVarValues(message, this)
 	}
 }
 
