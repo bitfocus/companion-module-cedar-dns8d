@@ -5,7 +5,7 @@ import { SetVarValues } from './updateVariableValues.js'
 import { UpgradeScripts } from './upgrades.js'
 import { ActionId, UpdateActions } from './actions.js'
 import { AddToActionRecording } from './actionRecorder.js'
-import { BuildMessage } from './message.js'
+import { BuildMessage, ParameterType } from './message.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { UpdatePresets } from './presets.js'
 import PQueue from 'p-queue'
@@ -73,11 +73,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		return this.dns8d.channels[chanId]
 	}
 
-	public buildMessage(
-		channel: number,
-		parameter: 'learn' | 'on' | 'bias' | 'atten' | 'name',
-		value: string | number,
-	): void {
+	public buildMessage(channel: number, parameter: ParameterType, value: string | number): void {
 		BuildMessage(channel, parameter, value, this)
 	}
 

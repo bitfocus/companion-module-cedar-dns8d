@@ -2,6 +2,7 @@ import type { CedarDNS8DInstance } from './main.js'
 import { CompanionActionDefinition, DropdownChoice } from '@companion-module/base'
 import { channelOption, learnOption, onOption, attenOption, biasOption, nameOption, relativeOption } from './options.js'
 import { calcBooleanVal, calcAttenBiasVal, parseStringFromBoolean } from './utils.js'
+import { ParameterType } from './message.js'
 
 export enum ActionId {
 	channelLearn = 'channelLearn',
@@ -28,7 +29,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).learn)
-				self.buildMessage(id, 'learn', value)
+				self.buildMessage(id, ParameterType.Learn, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -43,7 +44,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).on)
-				self.buildMessage(id, 'on', value)
+				self.buildMessage(id, ParameterType.On, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -59,7 +60,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getChannel(id).atten, Boolean(action.options['relative']), -20, 0)
-				self.buildMessage(id, 'atten', value)
+				self.buildMessage(id, ParameterType.Attenuatiuon, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -75,7 +76,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getChannel(id).bias, Boolean(action.options['relative']), -10, 10)
-				self.buildMessage(id, 'bias', value)
+				self.buildMessage(id, ParameterType.Bias, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -90,7 +91,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				const value = await context.parseVariablesInString(action.options['value']?.toString() ?? '')
 				if (isNaN(id) || id < 1 || id > 8) return
-				self.buildMessage(id, 'name', value)
+				self.buildMessage(id, ParameterType.Name, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -103,7 +104,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [learnOption],
 			callback: (action) => {
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.dns8d.globalLearn)
-				self.buildMessage(0, 'learn', value)
+				self.buildMessage(0, ParameterType.Learn, value)
 			},
 			learn: async (action) => {
 				return { ...action.options, value: parseStringFromBoolean(self.dns8d.globalLearn) }
@@ -114,7 +115,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [onOption],
 			callback: (action) => {
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.dns8d.globalOn)
-				self.buildMessage(0, 'on', value)
+				self.buildMessage(0, ParameterType.On, value)
 			},
 			learn: async (action) => {
 				return { ...action.options, value: parseStringFromBoolean(self.dns8d.globalOn) }
