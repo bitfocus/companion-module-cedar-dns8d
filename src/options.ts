@@ -3,6 +3,7 @@ import type {
 	CompanionInputFieldTextInput,
 	CompanionInputFieldCheckbox,
 } from '@companion-module/base'
+import { ParameterType } from './message.js'
 
 const onOffToggle: CompanionInputFieldDropdown = {
 	id: 'value',
@@ -24,6 +25,23 @@ const textOptionWithVariables: CompanionInputFieldTextInput = {
 	useVariables: true,
 }
 
+export const bandOption: CompanionInputFieldDropdown = {
+	id: 'band',
+	type: 'dropdown',
+	label: 'Band',
+	default: 1,
+	allowCustom: true,
+	tooltip: 'Variable should return channel number',
+	choices: [
+		{ id: 1, label: 'Band 1' },
+		{ id: 2, label: 'Band 2' },
+		{ id: 3, label: 'Band 3' },
+		{ id: 4, label: 'Band 4' },
+		{ id: 5, label: 'Band 5' },
+		{ id: 6, label: 'Band 6' },
+	],
+}
+
 export const channelOption: CompanionInputFieldDropdown = {
 	id: 'channel',
 	type: 'dropdown',
@@ -32,6 +50,18 @@ export const channelOption: CompanionInputFieldDropdown = {
 	allowCustom: true,
 	tooltip: 'Variable should return channel number',
 	choices: [],
+}
+
+export const meterOption: CompanionInputFieldDropdown = {
+	id: 'type',
+	type: 'dropdown',
+	label: 'Type',
+	default: ParameterType.AttenuatiuonBand,
+	allowCustom: false,
+	choices: [
+		{ id: ParameterType.AttenuatiuonBand, label: 'Attenuation' },
+		{ id: ParameterType.BiasBand, label: 'Bias' },
+	],
 }
 
 export const learnOption: CompanionInputFieldDropdown = {

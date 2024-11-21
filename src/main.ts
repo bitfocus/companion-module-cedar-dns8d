@@ -13,6 +13,16 @@ import PQueue from 'p-queue'
 const reconnectInterval = 10000
 
 const queue = new PQueue({ concurrency: 1, interval: 40, intervalCap: 1 })
+
+export interface BandDetail {
+	active1: number
+	active2: number
+	power1: number
+	power2: number
+	atten: number
+	bias: number
+}
+
 export interface DNS8Channel {
 	active1: number
 	active2: number
@@ -34,6 +44,8 @@ export interface dns8d {
 	dspVersion: number
 	channels: DNS8Channel[]
 	selectedGroup: number
+	selectedGroupProps: DNS8Channel
+	groupDetailView: BandDetail[]
 }
 
 export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
@@ -50,6 +62,19 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		dspVersion: 0,
 		channels: [],
 		selectedGroup: 1,
+		selectedGroupProps: {
+			active1: 0,
+			active2: 0,
+			power1: 0,
+			power2: 0,
+			name: '',
+			bias: 0,
+			atten: 0,
+			learn: false,
+			on: false,
+			dsp: false,
+		},
+		groupDetailView: [],
 	}
 	constructor(internal: unknown) {
 		super(internal)
@@ -74,6 +99,21 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		return this.dns8d.channels[chanId]
 	}
 
+	public getBand(id: number): BandDetail {
+		const bandId = Math.floor(id)
+		if (this.dns8d.groupDetailView[bandId] === undefined) {
+			this.dns8d.groupDetailView[bandId] = {
+				active1: 0,
+				active2: 0,
+				power1: 0,
+				power2: 0,
+				bias: 0,
+				atten: 0,
+			}
+		}
+		return this.dns8d.groupDetailView[bandId]
+	}
+
 	public buildMessage(
 		channel: number,
 		parameter: ParameterType,
@@ -82,7 +122,10 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		band = 1,
 		priority = 1,
 	): void {
-		this.sendMessage(BuildMessage(channel, parameter, value, group, band), priority).catch(() => {})
+		this.sendMessage(
+			BuildMessage(Math.floor(channel), parameter, value, Math.floor(group), Math.floor(band)),
+			priority,
+		).catch(() => {})
 	}
 
 	public async sendMessage(message: string, priority = 1): Promise<void> {
@@ -105,7 +148,6 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		if (queue.size === 0) {
 			// only add a poll query if there isn't already a message in the queue
 			this.buildMessage(0, ParameterType.None, 0, this.dns8d.selectedGroup, 1, 0)
-			//this.sendMessage(pollMessage, 0).catch(() => {})
 		}
 		this.pollTimer = setTimeout(() => this.startPolling(), interval)
 	}

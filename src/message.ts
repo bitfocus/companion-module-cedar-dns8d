@@ -32,8 +32,8 @@ export function BuildMessage(
 	message += `<group idx="${group - 1}"><name/><bias/><atten/>`
 	for (let i = 1; i <= 6; i++) {
 		message += `<band idx="${i - 1}">`
-		message += ParameterType.BiasBand && band === i ? `<bias dB="${safeValue}"/>` : `<bias/>`
-		message += ParameterType.AttenuatiuonBand && band === i ? `<atten dB="${safeValue}"/>` : `<atten/>`
+		message += parameter === ParameterType.BiasBand && i === band ? `<bias dB="${safeValue}"/>` : `<bias/>`
+		message += parameter == ParameterType.AttenuatiuonBand && i === band ? `<atten dB="${safeValue}"/>` : `<atten/>`
 		message += `</band>`
 	}
 	message += `</group>`

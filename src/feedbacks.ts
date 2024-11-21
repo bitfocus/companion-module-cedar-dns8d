@@ -1,13 +1,15 @@
 import { combineRgb, type CompanionFeedbackDefinition, DropdownChoice } from '@companion-module/base'
-import { channelOption } from './options.js'
+import { channelOption, meterOption } from './options.js'
 import type { CedarDNS8DInstance } from './main.js'
-import { buildIcon } from './utils.js'
+import { buildIcon, buildDetailIcon } from './utils.js'
+import { ParameterType } from './message.js'
 
 export enum FeedbackId {
 	channelLearn = 'channelLearn',
 	channelDSP = 'channelDSP',
 	channelOn = 'channelOn',
 	channelStatus = 'channelStatus',
+	detailedMeters = 'detailedMeters',
 	globalLearn = 'globalLearn',
 	globalOn = 'globalOn',
 	fallbackMode = 'fallbackMode',
@@ -78,6 +80,31 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
 				if (isNaN(id)) return {}
 				return { imageBuffer: buildIcon(self.getChannel(id), feedback.image?.width, feedback.image?.height) }
+			},
+		},
+		[FeedbackId.detailedMeters]: {
+			name: 'Detailed Meters',
+			type: 'advanced',
+			options: [meterOption],
+			callback: async (feedback) => {
+				const type = feedback.options['type']?.toString() ?? ''
+				let paramType: ParameterType = ParameterType.AttenuatiuonBand
+				switch (type) {
+					case ParameterType.AttenuatiuonBand.toString():
+						paramType = ParameterType.AttenuatiuonBand
+						break
+					case ParameterType.BiasBand.toString():
+						paramType = ParameterType.BiasBand
+				}
+				return {
+					imageBuffer: buildDetailIcon(
+						self,
+						self.dns8d.selectedGroupProps,
+						paramType,
+						feedback.image?.width,
+						feedback.image?.height,
+					),
+				}
 			},
 		},
 		[FeedbackId.globalLearn]: {
