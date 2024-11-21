@@ -7,7 +7,7 @@ const parser = new XMLParser({ allowBooleanAttributes: true, ignoreAttributes: f
 
 export function SetVarValues(message: string, self: CedarDNS8DInstance): void {
 	const data = parser.parse(message)
-	console.log(data)
+	//console.log(data)
 	let updateActionsFeedbacks = false
 	const globalOn = parseBooleanFromString(data?.dns8d?.global[`@_on`] ?? '', self.dns8d.globalOn)
 	const globalLearn = parseBooleanFromString(data?.dns8d?.global[`@_learn`] ?? '', self.dns8d.globalLearn)

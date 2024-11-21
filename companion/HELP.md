@@ -30,6 +30,8 @@ Tested with Firmware 1.5
 
 ### Presets
 
+- Attenuation - Detail View
+- Bias - Detail View
 - Channel Status
 
 ### Variables
