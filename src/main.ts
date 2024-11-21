@@ -65,8 +65,8 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		selectedGroupProps: {
 			active1: 0,
 			active2: 0,
-			power1: 0,
-			power2: 0,
+			power1: -100,
+			power2: -100,
 			name: '',
 			bias: 0,
 			atten: 0,
@@ -86,8 +86,8 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 			this.dns8d.channels[chanId] = {
 				active1: 0,
 				active2: 0,
-				power1: 0,
-				power2: 0,
+				power1: -100,
+				power2: -100,
 				name: `Ch ${chanId}`,
 				bias: 0,
 				atten: 0,
@@ -105,8 +105,8 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 			this.dns8d.groupDetailView[bandId] = {
 				active1: 0,
 				active2: 0,
-				power1: 0,
-				power2: 0,
+				power1: -100,
+				power2: -100,
 				bias: 0,
 				atten: 0,
 			}
@@ -164,6 +164,11 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 			this.socket.close(1000, 'Resetting connection')
 		}
 		queue.clear()
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer)
+			delete this.reconnectTimer
+		}
+		this.updateStatus(InstanceStatus.Connecting)
 		this.socket = new WebSocket(`ws://${host}:${Math.floor(port)}/info.ws`)
 		this.socket.addEventListener('open', () => {
 			this.updateStatus(InstanceStatus.Ok)
@@ -179,8 +184,9 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 			this.setVarValues(event.data)
 		})
 		this.socket.addEventListener('error', (error) => {
-			this.log('error', `Error from socket  ${error.message}`)
+			this.log('error', `Error from socket: ${error.message}`)
 			this.updateStatus(InstanceStatus.UnknownError)
+			this.reconnectTimer = setTimeout(() => this.newSocket(), reconnectInterval)
 		})
 		this.socket.addEventListener('close', (event) => {
 			this.log('warn', `Socket Closed ${event.code} ${event.reason}`)
