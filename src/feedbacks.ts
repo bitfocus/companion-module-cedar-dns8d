@@ -86,21 +86,16 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			name: 'Detailed Meters',
 			type: 'advanced',
 			options: [meterOption],
-			callback: async (feedback) => {
-				const type = feedback.options['type']?.toString() ?? ''
-				let paramType: ParameterType = ParameterType.AttenuatiuonBand
-				switch (type) {
-					case ParameterType.AttenuatiuonBand.toString():
-						paramType = ParameterType.AttenuatiuonBand
-						break
-					case ParameterType.BiasBand.toString():
-						paramType = ParameterType.BiasBand
-				}
+			callback: (feedback) => {
+				const type =
+					(feedback.options['type']?.toString() ?? '') === ParameterType.AttenuatiuonBand.toString()
+						? ParameterType.AttenuatiuonBand
+						: ParameterType.BiasBand
 				return {
 					imageBuffer: buildDetailIcon(
 						self,
 						self.dns8d.selectedGroupProps,
-						paramType,
+						type,
 						feedback.image?.width,
 						feedback.image?.height,
 					),
