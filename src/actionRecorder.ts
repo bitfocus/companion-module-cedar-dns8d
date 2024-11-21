@@ -14,10 +14,15 @@ export function AddToActionRecording(
 			value: typeof value === 'boolean' ? parseStringFromBoolean(value) : value.toString(),
 		}
 		switch (action) {
+			case ActionId.bandAtten:
+			case ActionId.bandBias:
+				actOptions.band = channel
+				actOptions.relative = false
+				break
 			case ActionId.channelAtten:
 			case ActionId.channelBias:
-				actOptions.relative = false
 				actOptions.channel = channel
+				actOptions.relative = false
 				break
 			case ActionId.channelLearn:
 			case ActionId.channelName:

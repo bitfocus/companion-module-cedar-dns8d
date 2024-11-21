@@ -106,8 +106,16 @@ export function SetVarValues(message: string, self: CedarDNS8DInstance): void {
 		band.active2 = Number(data?.dns8d?.group?.band[i - 1]?.activ?.split(' ')[1] ?? band.active2)
 		band.power1 = Number(data?.dns8d?.group?.band[i - 1]?.power?.split(' ')[0] ?? band.power1)
 		band.power2 = Number(data?.dns8d?.group?.band[i - 1]?.power?.split(' ')[1] ?? band.power2)
-		band.bias = Number(data?.dns8d?.group?.band[i - 1]?.bias?.[`@_dB`] ?? band.bias)
-		band.atten = Number(data?.dns8d?.group?.band[i - 1]?.atten?.[`@_dB`] ?? band.atten)
+		const bandBias = Number(data?.dns8d?.group?.band[i - 1]?.bias?.[`@_dB`] ?? band.bias)
+		const bandAtten = Number(data?.dns8d?.group?.band[i - 1]?.atten?.[`@_dB`] ?? band.atten)
+		if (band.bias !== bandBias) {
+			band.bias = bandBias
+			self.addToActionRecording(ActionId.bandBias, bandBias, i)
+		}
+		if (band.atten !== bandAtten) {
+			band.atten = bandAtten
+			self.addToActionRecording(ActionId.bandAtten, bandAtten, i)
+		}
 		varList = {
 			...varList,
 			[`band${i}_Active1`]: band.active1,
