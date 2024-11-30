@@ -16,7 +16,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/phillipivan/companion-module-cedar-dns8d.git"
+		"url": "git+https://github.com/bitfocus/companion-module-cedar-dns8d.git"
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.11.2",
@@ -27,7 +27,7 @@
 	"devDependencies": {
 		"@companion-module/tools": "^2.1.0",
 		"@types/node": "^22.10.1",
-		"eslint": "~9.15.0",
+		"eslint": "~9.16.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^15.2.10",
 		"prettier": "^3.4.1",

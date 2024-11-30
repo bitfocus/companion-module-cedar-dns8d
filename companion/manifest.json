@@ -5,8 +5,8 @@
 	"description": "Cedar DNS 8D Dialogue Noise Supressor",
 	"version": "0.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/phillipivan/companion-module-cedar-dns8d.git",
-	"bugs": "https://github.com/phillipivan/companion-module-cedar-dns8d/issues",
+	"repository": "git+https://github.com/bitfocus/companion-module-cedar-dns8d.git",
+	"bugs": "https://github.com/bitfocus/companion-module-cedar-dns8d/issues",
 	"maintainers": [
 		{
 			"name": "Phillip Ivan Pietruschka",
