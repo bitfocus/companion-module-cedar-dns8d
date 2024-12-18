@@ -41,7 +41,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).learn)
-				self.buildMessage(id, ParameterType.Learn, value)
+				await self.buildMessage(id, ParameterType.Learn, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -56,7 +56,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).on)
-				self.buildMessage(id, ParameterType.On, value)
+				await self.buildMessage(id, ParameterType.On, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -72,7 +72,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getChannel(id).atten, Boolean(action.options['relative']), -20, 0)
-				self.buildMessage(id, ParameterType.Attenuatiuon, value)
+				await self.buildMessage(id, ParameterType.Attenuatiuon, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -88,7 +88,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getChannel(id).bias, Boolean(action.options['relative']), -10, 10)
-				self.buildMessage(id, ParameterType.Bias, value)
+				await self.buildMessage(id, ParameterType.Bias, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -103,7 +103,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				const value = await context.parseVariablesInString(action.options['value']?.toString() ?? '')
 				if (isNaN(id) || id < 1 || id > 8) return
-				self.buildMessage(id, ParameterType.Name, value)
+				await self.buildMessage(id, ParameterType.Name, value)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
@@ -114,9 +114,9 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.globalLearn]: {
 			name: 'Global Learn',
 			options: [learnOption],
-			callback: (action) => {
+			callback: async (action) => {
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.dns8d.globalLearn)
-				self.buildMessage(0, ParameterType.Learn, value)
+				await self.buildMessage(0, ParameterType.Learn, value)
 			},
 			learn: async (action) => {
 				return { ...action.options, value: parseStringFromBoolean(self.dns8d.globalLearn) }
@@ -125,9 +125,9 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.globalOn]: {
 			name: 'Global On',
 			options: [onOption],
-			callback: (action) => {
+			callback: async (action) => {
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.dns8d.globalOn)
-				self.buildMessage(0, ParameterType.On, value)
+				await self.buildMessage(0, ParameterType.On, value)
 			},
 			learn: async (action) => {
 				return { ...action.options, value: parseStringFromBoolean(self.dns8d.globalOn) }
@@ -139,7 +139,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			callback: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8) return
-				self.buildMessage(id, ParameterType.None, 0, (self.dns8d.selectedGroup = id))
+				await self.buildMessage(id, ParameterType.None, 0, (self.dns8d.selectedGroup = id))
 			},
 			learn: async (action) => {
 				return { ...action.options, channel: self.dns8d.selectedGroup }
@@ -153,7 +153,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getBand(id).atten, Boolean(action.options['relative']), -20, 0)
-				self.buildMessage(0, ParameterType.AttenuatiuonBand, value, self.dns8d.selectedGroup, id)
+				await self.buildMessage(0, ParameterType.AttenuatiuonBand, value, self.dns8d.selectedGroup, id)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['band']?.toString() ?? '0'))
@@ -169,7 +169,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
 				if (isNaN(id) || id < 1 || id > 6 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getBand(id).bias, Boolean(action.options['relative']), -10, 10)
-				self.buildMessage(0, ParameterType.BiasBand, value, self.dns8d.selectedGroup, id)
+				await self.buildMessage(0, ParameterType.BiasBand, value, self.dns8d.selectedGroup, id)
 			},
 			learn: async (action, context) => {
 				const id = Number(await context.parseVariablesInString(action.options['band']?.toString() ?? '0'))

@@ -114,18 +114,18 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		return this.dns8d.groupDetailView[bandId]
 	}
 
-	public buildMessage(
+	public async buildMessage(
 		channel: number,
 		parameter: ParameterType,
 		value: string | number,
 		group = this.dns8d.selectedGroup,
 		band = 1,
 		priority = 1,
-	): void {
-		this.sendMessage(
+	): Promise<void> {
+		await this.sendMessage(
 			BuildMessage(Math.floor(channel), parameter, value, Math.floor(group), Math.floor(band)),
 			priority,
-		).catch(() => {})
+		)
 	}
 
 	public async sendMessage(message: string, priority = 1): Promise<void> {
@@ -147,7 +147,7 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 		}
 		if (queue.size === 0) {
 			// only add a poll query if there isn't already a message in the queue
-			this.buildMessage(0, ParameterType.None, 0, this.dns8d.selectedGroup, 1, 0)
+			this.buildMessage(0, ParameterType.None, 0, this.dns8d.selectedGroup, 1, 0).catch(() => {})
 		}
 		this.pollTimer = setTimeout(() => this.startPolling(), interval)
 	}
