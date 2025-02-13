@@ -31,7 +31,7 @@ export const bandOption: CompanionInputFieldDropdown = {
 	label: 'Band',
 	default: 1,
 	allowCustom: true,
-	tooltip: 'Variable should return channel number',
+	tooltip: 'Variable should return band number',
 	choices: [
 		{ id: 1, label: 'Band 1' },
 		{ id: 2, label: 'Band 2' },
