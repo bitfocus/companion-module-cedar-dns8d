@@ -22,7 +22,7 @@ const textOptionWithVariables: CompanionInputFieldTextInput = {
 	type: 'textinput',
 	label: '',
 	default: '',
-	useVariables: true,
+	useVariables: { local: true },
 }
 
 export const bandOption: CompanionInputFieldDropdown = {

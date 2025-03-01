@@ -1,6 +1,6 @@
 {
 	"name": "cedar-dns8d",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"main": "dist/main.js",
 	"type": "module",
 	"scripts": {
@@ -21,19 +21,19 @@
 	"dependencies": {
 		"@companion-module/base": "~1.11.3",
 		"companion-module-utils": "^0.5.0",
-		"fast-xml-parser": "~4.5.1",
+		"fast-xml-parser": "~5.0.8",
 		"p-queue": "^8.1.0"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.1.1",
-		"@types/node": "^22.13.1",
-		"eslint": "~9.20.1",
+		"@types/node": "^22.13.7",
+		"eslint": "~9.21.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^15.4.3",
-		"prettier": "^3.5.0",
+		"prettier": "^3.5.2",
 		"rimraf": "^6.0.1",
 		"typescript": "~5.7.3",
-		"typescript-eslint": "^8.24.0"
+		"typescript-eslint": "^8.25.0"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json",
 	"lint-staged": {
