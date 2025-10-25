@@ -1,6 +1,6 @@
 {
 	"name": "cedar-dns8d",
-	"version": "1.0.5-limitedCache",
+	"version": "1.0.5",
 	"main": "dist/main.js",
 	"type": "module",
 	"scripts": {
