@@ -949,7 +949,7 @@ __metadata:
     "@companion-module/base": "npm:~1.13.4"
     "@companion-module/tools": "npm:^2.4.2"
     "@types/node": "npm:^22.18.12"
-    companion-module-utils: "npm:^0.5.0"
+    companion-module-utils: "patch:companion-module-utils@npm%3A0.5.0#~/.yarn/patches/companion-module-utils-npm-0.5.0-031725c535.patch"
     eslint: "npm:~9.38.0"
     fast-xml-parser: "npm:~5.3.0"
     husky: "npm:^9.1.7"
@@ -1067,13 +1067,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"companion-module-utils@npm:^0.5.0":
+"companion-module-utils@npm:0.5.0":
   version: 0.5.0
   resolution: "companion-module-utils@npm:0.5.0"
   dependencies:
     "@types/pngjs": "npm:^6.0.1"
     pngjs: "npm:^7.0.0"
   checksum: 10c0/ad8ec64ba33823fc5cbb4fba0a815f1a3897c1e337dd4897c1c6bfef6c33fa0c193aeda09ac451afe369c1ce85ca5d7b2250c554d7ab516118790d153a2c57af
+  languageName: node
+  linkType: hard
+
+"companion-module-utils@patch:companion-module-utils@npm%3A0.5.0#~/.yarn/patches/companion-module-utils-npm-0.5.0-031725c535.patch":
+  version: 0.5.0
+  resolution: "companion-module-utils@patch:companion-module-utils@npm%3A0.5.0#~/.yarn/patches/companion-module-utils-npm-0.5.0-031725c535.patch::version=0.5.0&hash=2bd8a2"
+  dependencies:
+    "@types/pngjs": "npm:^6.0.1"
+    pngjs: "npm:^7.0.0"
+  checksum: 10c0/559977b2608d08044946de0bc49cb11f8290fd2b0a145400f06df07a1cb94227cadc638076bda7226f34126dfb577f48db4de3d6150cd2805cb0eff2f89d6532
   languageName: node
   linkType: hard
 
