@@ -37,14 +37,14 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.channelLearn]: {
 			name: 'Channel Learn',
 			options: [chanList, learnOption],
-			callback: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+			callback: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).learn)
 				await self.buildMessage(id, ParameterType.Learn, value)
 			},
-			learn: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+			learn: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return undefined
 				return { ...action.options, value: parseStringFromBoolean(self.getChannel(id).learn) }
 			},
@@ -52,14 +52,14 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.channelOn]: {
 			name: 'Channel On',
 			options: [chanList, onOption],
-			callback: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+			callback: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return
 				const value = calcBooleanVal(action.options['value']?.toString() ?? '0', self.getChannel(id).on)
 				await self.buildMessage(id, ParameterType.On, value)
 			},
-			learn: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+			learn: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return undefined
 				return { ...action.options, value: parseStringFromBoolean(self.getChannel(id).on) }
 			},
@@ -67,15 +67,15 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.channelAtten]: {
 			name: 'Channel Attenuatiuon',
 			options: [chanList, attenOption, relativeOption],
-			callback: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
-				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
+			callback: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
+				let value = Number(action.options['value']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getChannel(id).atten, Boolean(action.options['relative']), -20, 0)
 				await self.buildMessage(id, ParameterType.Attenuatiuon, value)
 			},
-			learn: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+			learn: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return undefined
 				return { ...action.options, value: self.getChannel(id).atten.toString(), relative: false }
 			},
@@ -83,15 +83,15 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.channelBias]: {
 			name: 'Channel Bias',
 			options: [chanList, biasOption, relativeOption],
-			callback: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
-				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
+			callback: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
+				let value = Number(action.options['value']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getChannel(id).bias, Boolean(action.options['relative']), -10, 10)
 				await self.buildMessage(id, ParameterType.Bias, value)
 			},
-			learn: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+			learn: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return undefined
 				return { ...action.options, value: self.getChannel(id).bias.toString(), relative: false }
 			},
@@ -99,14 +99,14 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.channelName]: {
 			name: 'Channel Name',
 			options: [chanList, nameOption],
-			callback: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
-				const value = await context.parseVariablesInString(action.options['value']?.toString() ?? '')
+			callback: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
+				const value = action.options['value']?.toString() ?? ''
 				if (isNaN(id) || id < 1 || id > 8) return
 				await self.buildMessage(id, ParameterType.Name, value)
 			},
-			learn: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+			learn: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return undefined
 				return { ...action.options, value: self.getChannel(id).name }
 			},
@@ -136,8 +136,8 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.groupSelect]: {
 			name: 'Detail Select Channel',
 			options: [chanList],
-			callback: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['channel']?.toString() ?? '0'))
+			callback: async (action) => {
+				const id = Number(action.options['channel']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return
 				await self.buildMessage(id, ParameterType.None, 0, (self.dns8d.selectedGroup = id))
 			},
@@ -148,15 +148,15 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.bandAtten]: {
 			name: 'Detail Attenuatiuon',
 			options: [bandOption, attenOption, relativeOption],
-			callback: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['band']?.toString() ?? '0'))
-				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
+			callback: async (action) => {
+				const id = Number(action.options['band']?.toString() ?? '0')
+				let value = Number(action.options['value']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getBand(id).atten, Boolean(action.options['relative']), -20, 0)
 				await self.buildMessage(0, ParameterType.AttenuatiuonBand, value, self.dns8d.selectedGroup, id)
 			},
-			learn: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['band']?.toString() ?? '0'))
+			learn: async (action) => {
+				const id = Number(action.options['band']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8) return undefined
 				return { ...action.options, value: self.getBand(id).atten.toString(), relative: false }
 			},
@@ -164,15 +164,15 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.bandBias]: {
 			name: 'Detail Bias',
 			options: [bandOption, biasOption, relativeOption],
-			callback: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['band']?.toString() ?? '0'))
-				let value = Number(await context.parseVariablesInString(action.options['value']?.toString() ?? '0'))
+			callback: async (action) => {
+				const id = Number(action.options['band']?.toString() ?? '0')
+				let value = Number(action.options['value']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 6 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getBand(id).bias, Boolean(action.options['relative']), -10, 10)
 				await self.buildMessage(0, ParameterType.BiasBand, value, self.dns8d.selectedGroup, id)
 			},
-			learn: async (action, context) => {
-				const id = Number(await context.parseVariablesInString(action.options['band']?.toString() ?? '0'))
+			learn: async (action) => {
+				const id = Number(action.options['band']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 6) return undefined
 				return { ...action.options, value: self.getBand(id).bias.toString(), relative: false }
 			},
