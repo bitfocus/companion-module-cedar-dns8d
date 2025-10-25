@@ -1,6 +1,6 @@
 {
 	"name": "cedar-dns8d",
-	"version": "1.0.4",
+	"version": "1.0.5-limitedCache",
 	"main": "dist/main.js",
 	"type": "module",
 	"scripts": {
@@ -19,21 +19,21 @@
 		"url": "git+https://github.com/bitfocus/companion-module-cedar-dns8d.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.12.1",
-		"companion-module-utils": "^0.5.0",
-		"fast-xml-parser": "~5.2.5",
-		"p-queue": "^8.1.0"
+		"@companion-module/base": "~1.13.4",
+		"companion-module-utils": "patch:companion-module-utils@npm%3A0.5.0#~/.yarn/patches/companion-module-utils-npm-0.5.0-031725c535.patch",
+		"fast-xml-parser": "~5.3.0",
+		"p-queue": "^9.0.0"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^2.3.0",
-		"@types/node": "^22.15.32",
-		"eslint": "~9.29.0",
+		"@companion-module/tools": "^2.4.2",
+		"@types/node": "^22.18.12",
+		"eslint": "~9.38.0",
 		"husky": "^9.1.7",
-		"lint-staged": "^16.1.2",
-		"prettier": "^3.5.3",
+		"lint-staged": "^16.2.6",
+		"prettier": "^3.6.2",
 		"rimraf": "^6.0.1",
-		"typescript": "~5.8.3",
-		"typescript-eslint": "^8.34.1"
+		"typescript": "~5.9.3",
+		"typescript-eslint": "^8.46.2"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json",
 	"lint-staged": {
@@ -47,5 +47,5 @@
 	"engines": {
 		"node": "^22.15"
 	},
-	"packageManager": "yarn@4.9.1"
+	"packageManager": "yarn@4.10.3"
 }
