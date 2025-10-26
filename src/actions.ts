@@ -148,8 +148,8 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 		[ActionId.bandAtten]: {
 			name: 'Detail Attenuatiuon',
 			options: [bandOption, attenOption, relativeOption],
-			callback: async (action) => {
-				const id = Number(action.options['band']?.toString() ?? '0')
+			callback: async (action, context) => {
+				const id = Number(await context.parseVariablesInString(action.options['band']?.toString() ?? '0'))
 				let value = Number(action.options['value']?.toString() ?? '0')
 				if (isNaN(id) || id < 1 || id > 8 || isNaN(value)) return
 				value = calcAttenBiasVal(value, self.getBand(id).atten, Boolean(action.options['relative']), -20, 0)
