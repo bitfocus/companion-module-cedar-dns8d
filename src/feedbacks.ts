@@ -45,7 +45,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			defaultStyle: styles.dnsLightBlue,
 			options: [chanList],
 			callback: async (feedback, context) => {
-				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? '0'))
+				const id = Number.parseInt(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? '0'))
 				if (isNaN(id)) return false
 				return self.getChannel(id).learn
 			},
@@ -56,7 +56,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			defaultStyle: styles.dnsLightBlue,
 			options: [chanList],
 			callback: async (feedback, context) => {
-				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? '0'))
+				const id = Number.parseInt(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? '0'))
 				if (isNaN(id)) return false
 				return self.getChannel(id).dsp
 			},
@@ -67,7 +67,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			defaultStyle: styles.dnsLightBlue,
 			options: [chanList],
 			callback: async (feedback, context) => {
-				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
+				const id = Number.parseInt(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
 				if (isNaN(id)) return false
 				return self.getChannel(id).on
 			},
@@ -77,7 +77,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			type: 'advanced',
 			options: [chanList],
 			callback: async (feedback, context) => {
-				const id = Number(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
+				const id = Number.parseInt(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
 				if (isNaN(id)) return {}
 				return { imageBuffer: buildIcon(self.getChannel(id), feedback.image?.width, feedback.image?.height) }
 			},
