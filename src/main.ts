@@ -215,7 +215,6 @@ export class CedarDNS8DInstance extends InstanceBase<ModuleConfig> {
 	}
 
 	async configUpdated(config: ModuleConfig): Promise<void> {
-		process.title = this.label
 		this.stopPolling()
 		this.config = config
 		if (config.host) {
