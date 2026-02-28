@@ -877,7 +877,7 @@ __metadata:
     "@types/node": "npm:^22.19.7"
     companion-module-utils: "patch:companion-module-utils@npm%3A0.5.0#~/.yarn/patches/companion-module-utils-npm-0.5.0-031725c535.patch"
     eslint: "npm:~9.39.2"
-    fast-xml-parser: "npm:~5.3.6"
+    fast-xml-parser: "npm:~5.3.8"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^16.2.7"
     p-queue: "npm:^9.1.0"
@@ -1381,14 +1381,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:~5.3.6":
-  version: 5.3.6
-  resolution: "fast-xml-parser@npm:5.3.6"
+"fast-xml-parser@npm:~5.3.8":
+  version: 5.3.9
+  resolution: "fast-xml-parser@npm:5.3.9"
   dependencies:
     strnum: "npm:^2.1.2"
   bin:
     fxparser: src/cli/cli.js
-  checksum: 10c0/0150cc0566f327a76115de8b11628d717fb179010ed9bb77c52e579a7e6055a0f92f42f83678a6f1ec5b74411faec09713cb1f9b94bc687068ad86884a9199fa
+  checksum: 10c0/657badb7f6c90d5c51cbb48af8ab22300a70de8d83a1504bda5608a854b6eab4495afcc5b15b9bd692b1d66a9f2e67b4246728b3f1abf44b48037c29235e9923
   languageName: node
   linkType: hard
 
