@@ -1,9 +1,14 @@
-import { combineRgb, type CompanionFeedbackDefinition, DropdownChoice } from '@companion-module/base'
-import { channelOption, meterOption } from './options.js'
-import type { CedarDNS8DInstance } from './main.js'
-import { buildIcon, buildDetailIcon } from './utils.js'
-import { ParameterType } from './message.js'
+import type { CompanionAdvancedFeedbackResult, CompanionFeedbackDefinitions } from '@companion-module/base'
+import { colours } from './colours.js'
+import { channelOption, meterOption, type MeterType } from './options.js'
+import type CedarDNS8DInstance from './main.js'
+import { buildIcon, buildDetailIcon, isChannel } from './utils.js'
+import { CHANNELS, ParameterType } from './message.js'
 
+/**
+ * Feedback ids. The values are the ids saved against every button using the feedback, so they must never change —
+ * they predate this enum and are camelCase for that reason.
+ */
 export enum FeedbackId {
 	channelLearn = 'channelLearn',
 	channelDSP = 'channelDSP',
@@ -15,13 +20,18 @@ export enum FeedbackId {
 	fallbackMode = 'fallbackMode',
 }
 
-export const colours = {
-	white: combineRgb(255, 255, 255),
-	black: combineRgb(0, 0, 0),
-	dnsLightBlue: combineRgb(0, 222, 222),
-	dnsDarkBlue: combineRgb(0, 111, 111),
-	dnsGrey: combineRgb(91, 91, 91),
-	dnsDarkGrey: combineRgb(64, 64, 64),
+type ChannelOptions = { channel: number }
+type NoOptions = Record<string, never>
+
+export type FeedbackSchema = {
+	[FeedbackId.channelLearn]: { type: 'boolean'; options: ChannelOptions }
+	[FeedbackId.channelDSP]: { type: 'boolean'; options: ChannelOptions }
+	[FeedbackId.channelOn]: { type: 'boolean'; options: ChannelOptions }
+	[FeedbackId.channelStatus]: { type: 'advanced'; options: ChannelOptions }
+	[FeedbackId.detailedMeters]: { type: 'advanced'; options: { type: MeterType } }
+	[FeedbackId.globalLearn]: { type: 'boolean'; options: NoOptions }
+	[FeedbackId.globalOn]: { type: 'boolean'; options: NoOptions }
+	[FeedbackId.fallbackMode]: { type: 'boolean'; options: NoOptions }
 }
 
 const styles = {
@@ -31,23 +41,28 @@ const styles = {
 	},
 }
 
-export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
-	const channels: DropdownChoice[] = []
-	for (let i = 1; i <= 8; i++) {
-		const chan = self.getChannel(i)
-		channels.push({ id: i, label: chan.name })
+/**
+ * API 2.x takes the image buffer base64 encoded. companion-module-utils draws 32 bit ARGB pixels, so say so rather
+ * than leave Companion to assume a format.
+ */
+export function imageResult(buffer: Uint8Array): CompanionAdvancedFeedbackResult {
+	return {
+		imageBuffer: Buffer.from(buffer).toString('base64'),
+		imageBufferEncoding: { pixelFormat: 'ARGB' },
 	}
-	const chanList = { ...channelOption, choices: channels }
-	const feedbacks: { [id in FeedbackId]: CompanionFeedbackDefinition | undefined } = {
+}
+
+export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
+	const chanList = channelOption(CHANNELS.map((i) => self.getChannel(i).name))
+	const feedbacks: CompanionFeedbackDefinitions<FeedbackSchema> = {
 		[FeedbackId.channelLearn]: {
 			name: 'Channel Learn',
 			type: 'boolean',
 			defaultStyle: styles.dnsLightBlue,
 			options: [chanList],
-			callback: async (feedback, context) => {
-				const id = Number.parseInt(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? '0'))
-				if (isNaN(id)) return false
-				return self.getChannel(id).learn
+			callback: (feedback) => {
+				const id = feedback.options.channel
+				return isChannel(id) && self.getChannel(id).learn
 			},
 		},
 		[FeedbackId.channelDSP]: {
@@ -55,10 +70,9 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			type: 'boolean',
 			defaultStyle: styles.dnsLightBlue,
 			options: [chanList],
-			callback: async (feedback, context) => {
-				const id = Number.parseInt(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? '0'))
-				if (isNaN(id)) return false
-				return self.getChannel(id).dsp
+			callback: (feedback) => {
+				const id = feedback.options.channel
+				return isChannel(id) && self.getChannel(id).dsp
 			},
 		},
 		[FeedbackId.channelOn]: {
@@ -66,40 +80,35 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			type: 'boolean',
 			defaultStyle: styles.dnsLightBlue,
 			options: [chanList],
-			callback: async (feedback, context) => {
-				const id = Number.parseInt(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
-				if (isNaN(id)) return false
-				return self.getChannel(id).on
+			callback: (feedback) => {
+				const id = feedback.options.channel
+				return isChannel(id) && self.getChannel(id).on
 			},
 		},
 		[FeedbackId.channelStatus]: {
 			name: 'Channel Status',
 			type: 'advanced',
+			affectedProperties: ['imageBuffer'],
 			options: [chanList],
-			callback: async (feedback, context) => {
-				const id = Number.parseInt(await context.parseVariablesInString(feedback.options['channel']?.toString() ?? ''))
-				if (isNaN(id)) return {}
-				return { imageBuffer: buildIcon(self.getChannel(id), feedback.image?.width, feedback.image?.height) }
+			callback: (feedback) => {
+				const id = feedback.options.channel
+				if (!isChannel(id)) return {}
+				return imageResult(buildIcon(self.getChannel(id), feedback.image?.width, feedback.image?.height))
 			},
 		},
 		[FeedbackId.detailedMeters]: {
 			name: 'Detailed Meters',
 			type: 'advanced',
+			affectedProperties: ['imageBuffer'],
 			options: [meterOption],
 			callback: (feedback) => {
 				const type =
-					(feedback.options['type']?.toString() ?? '') === ParameterType.AttenuatiuonBand.toString()
+					feedback.options.type === ParameterType.AttenuatiuonBand
 						? ParameterType.AttenuatiuonBand
 						: ParameterType.BiasBand
-				return {
-					imageBuffer: buildDetailIcon(
-						self,
-						self.dns8d.selectedGroupProps,
-						type,
-						feedback.image?.width,
-						feedback.image?.height,
-					),
-				}
+				return imageResult(
+					buildDetailIcon(self, self.dns8d.selectedGroupProps, type, feedback.image?.width, feedback.image?.height),
+				)
 			},
 		},
 		[FeedbackId.globalLearn]: {

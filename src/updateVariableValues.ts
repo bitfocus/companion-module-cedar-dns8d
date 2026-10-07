@@ -1,9 +1,12 @@
-import { CompanionVariableValues } from '@companion-module/base'
 import { ActionId } from './actions.js'
-import { CedarDNS8DInstance } from './main.js'
+import type CedarDNS8DInstance from './main.js'
+import { BANDS, CHANNELS } from './message.js'
 import { parseBooleanFromString } from './utils.js'
+import type { VariablesSchema } from './variables.js'
 import { XMLParser } from 'fast-xml-parser'
-const parser = new XMLParser({ allowBooleanAttributes: true, ignoreAttributes: false })
+// parseTagValue off keeps element text as written: a channel named "007" or "1e3" would otherwise come back as 7 or
+// 1000. Numeric fields are converted with Number() where they are read.
+const parser = new XMLParser({ allowBooleanAttributes: true, ignoreAttributes: false, parseTagValue: false })
 
 export function SetVarValues(message: string, self: CedarDNS8DInstance): void {
 	const data = parser.parse(message)
@@ -22,14 +25,14 @@ export function SetVarValues(message: string, self: CedarDNS8DInstance): void {
 	}
 	self.dns8d.swVersion = Number(data?.dns8d?.global[`@_swVersion`] ?? self.dns8d.swVersion)
 	self.dns8d.dspVersion = Number(data?.dns8d?.global[`@_dspVersion`] ?? self.dns8d.dspVersion)
-	let varList: CompanionVariableValues = {
+	const varList: Partial<VariablesSchema> = {
 		global_On: self.dns8d.globalOn,
 		global_Learn: self.dns8d.globalLearn,
 		global_FallbackMode: self.dns8d.fallbackMode,
 		global_swVersion: self.dns8d.swVersion,
 		global_dspVersion: self.dns8d.dspVersion,
 	}
-	for (let i = 1; i <= 8; i++) {
+	for (const i of CHANNELS) {
 		const chan = self.getChannel(i)
 		const name = data?.dns8d?.chan[i - 1]?.name?.toString() ?? chan.name
 		const bias = Number(data?.dns8d?.chan[i - 1]?.bias?.[`@_dB`] ?? chan.bias)
@@ -62,45 +65,41 @@ export function SetVarValues(message: string, self: CedarDNS8DInstance): void {
 			chan.on = on
 			self.addToActionRecording(ActionId.channelOn, on, i)
 		}
-		varList = {
-			...varList,
-			[`channel${i}_Active1`]: chan.active1,
-			[`channel${i}_Active2`]: chan.active2,
-			[`channel${i}_Power1`]: chan.power1,
-			[`channel${i}_Power2`]: chan.power2,
-			[`channel${i}_Name`]: chan.name,
-			[`channel${i}_Bias`]: chan.bias,
-			[`channel${i}_Attenuation`]: chan.atten,
-			[`channel${i}_Learn`]: chan.learn,
-			[`channel${i}_DSP`]: chan.dsp,
-			[`channel${i}_On`]: chan.on,
-		}
+		varList[`channel${i}_Active1`] = chan.active1
+		varList[`channel${i}_Active2`] = chan.active2
+		varList[`channel${i}_Power1`] = chan.power1
+		varList[`channel${i}_Power2`] = chan.power2
+		varList[`channel${i}_Name`] = chan.name
+		varList[`channel${i}_Bias`] = chan.bias
+		varList[`channel${i}_Attenuation`] = chan.atten
+		varList[`channel${i}_Learn`] = chan.learn
+		varList[`channel${i}_DSP`] = chan.dsp
+		varList[`channel${i}_On`] = chan.on
 	}
 	const group = self.dns8d.selectedGroupProps
 	const number = Number(data?.dns8d?.group?.[`@_idx`] ?? 0) + 1
 	group.active1 = Number(data?.dns8d?.group?.activ?.split(' ')[0] ?? group.active1)
-	group.active2 = Number(data?.dns8d?.group?.activ?.split(' ')[0] ?? group.active2)
+	group.active2 = Number(data?.dns8d?.group?.activ?.split(' ')[1] ?? group.active2)
+	group.power1 = Number(data?.dns8d?.group?.power?.split(' ')[0] ?? group.power1)
+	group.power2 = Number(data?.dns8d?.group?.power?.split(' ')[1] ?? group.power2)
 	group.name = data?.dns8d?.group?.name?.toString() ?? group.name
 	group.bias = Number(data?.dns8d?.group?.bias?.[`@_dB`] ?? group.bias)
 	group.atten = Number(data?.dns8d?.group?.atten?.[`@_dB`] ?? group.atten)
 	group.learn = parseBooleanFromString(data?.dns8d?.group?.dns?.[`@_learn`] ?? '', group.learn)
 	group.on = parseBooleanFromString(data?.dns8d?.group?.dns?.[`@_on`] ?? '', group.on)
 	group.dsp = parseBooleanFromString(data?.dns8d?.group?.dns?.[`@_dsp`] ?? '', group.dsp)
-	varList = {
-		...varList,
-		[`selectedGroup_Active1`]: group.active1,
-		[`selectedGroup_Active2`]: group.active2,
-		[`selectedGroup_Power1`]: group.power1,
-		[`selectedGroup_Power2`]: group.power2,
-		[`selectedGroup_Name`]: group.name,
-		[`selectedGroup_Number`]: number,
-		[`selectedGroup_Bias`]: group.bias,
-		[`selectedGroup_Attenuation`]: group.atten,
-		[`selectedGroup_Learn`]: group.learn,
-		[`selectedGroup_DSP`]: group.dsp,
-		[`selectedGroup_On`]: group.on,
-	}
-	for (let i = 1; i <= 6; i++) {
+	varList.selectedGroup_Active1 = group.active1
+	varList.selectedGroup_Active2 = group.active2
+	varList.selectedGroup_Power1 = group.power1
+	varList.selectedGroup_Power2 = group.power2
+	varList.selectedGroup_Name = group.name
+	varList.selectedGroup_Number = number
+	varList.selectedGroup_Bias = group.bias
+	varList.selectedGroup_Attenuation = group.atten
+	varList.selectedGroup_Learn = group.learn
+	varList.selectedGroup_DSP = group.dsp
+	varList.selectedGroup_On = group.on
+	for (const i of BANDS) {
 		const band = self.getBand(i)
 		band.active1 = Number(data?.dns8d?.group?.band[i - 1]?.activ?.split(' ')[0] ?? band.active1)
 		band.active2 = Number(data?.dns8d?.group?.band[i - 1]?.activ?.split(' ')[1] ?? band.active2)
@@ -116,20 +115,17 @@ export function SetVarValues(message: string, self: CedarDNS8DInstance): void {
 			band.atten = bandAtten
 			self.addToActionRecording(ActionId.bandAtten, bandAtten, i)
 		}
-		varList = {
-			...varList,
-			[`band${i}_Active1`]: band.active1,
-			[`band${i}_Active2`]: band.active2,
-			[`band${i}_Power1`]: band.power1,
-			[`band${i}_Power2`]: band.power2,
-			[`band${i}_Bias`]: band.bias,
-			[`band${i}_Attenuation`]: band.atten,
-		}
+		varList[`band${i}_Active1`] = band.active1
+		varList[`band${i}_Active2`] = band.active2
+		varList[`band${i}_Power1`] = band.power1
+		varList[`band${i}_Power2`] = band.power2
+		varList[`band${i}_Bias`] = band.bias
+		varList[`band${i}_Attenuation`] = band.atten
 	}
 	self.setVariableValues(varList)
 	if (updateActionsFeedbacks) {
 		self.updateActions() // export actions
 		self.updateFeedbacks() // export feedbacks
 	}
-	self.checkFeedbacks()
+	self.checkAllFeedbacks()
 }

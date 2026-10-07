@@ -1,3 +1,9 @@
+/** The device's channels, and the bands of its detail view, numbered from 1 as the user sees them */
+export const CHANNELS = [1, 2, 3, 4, 5, 6, 7, 8] as const
+export type ChannelNumber = (typeof CHANNELS)[number]
+export const BANDS = [1, 2, 3, 4, 5, 6] as const
+export type BandNumber = (typeof BANDS)[number]
+
 export enum ParameterType {
 	Attenuatiuon = 'atten',
 	AttenuatiuonBand = 'attenBand',
@@ -9,6 +15,11 @@ export enum ParameterType {
 	On = 'on',
 }
 
+/** Escapes text for an XML element or a double-quoted attribute */
+export function escapeXml(text: string): string {
+	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 export function BuildMessage(
 	channel: number,
 	parameter: ParameterType,
@@ -16,7 +27,8 @@ export function BuildMessage(
 	group: number = 1,
 	band: number = 1,
 ): string {
-	const safeValue = value.toString().substring(0, 17)
+	// Truncate before escaping, so the limit counts the characters themselves and can't cut an entity in half
+	const safeValue = escapeXml(value.toString().substring(0, 17))
 	let message = '<dns8>'
 	for (let i = 1; i <= 8; i++) {
 		message += `<chan idx="${i - 1}">`

@@ -1,6 +1,6 @@
-import { CompanionOptionValues } from '@companion-module/base'
+import type { CompanionOptionValues } from '@companion-module/base'
 import { ActionId } from './actions.js'
-import type { CedarDNS8DInstance } from './main.js'
+import type CedarDNS8DInstance from './main.js'
 import { parseStringFromBoolean } from './utils.js'
 
 export function AddToActionRecording(
@@ -10,8 +10,9 @@ export function AddToActionRecording(
 	self: CedarDNS8DInstance,
 ): void {
 	if (self.isRecordingActions) {
+		// Booleans become the '0' / '1' dropdown ids. Numbers stay numbers, as atten and bias are number fields
 		const actOptions: CompanionOptionValues = {
-			value: typeof value === 'boolean' ? parseStringFromBoolean(value) : value.toString(),
+			value: typeof value === 'boolean' ? parseStringFromBoolean(value) : value,
 		}
 		switch (action) {
 			case ActionId.bandAtten:

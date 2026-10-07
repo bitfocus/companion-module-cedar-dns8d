@@ -3,8 +3,7 @@
 	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules/**"],
 	"compilerOptions": {
-		"types": ["jest", "node"],
-		"allowJs": true,
-		"strict": true
+		"types": ["node"],
+		"allowJs": true
 	}
 }

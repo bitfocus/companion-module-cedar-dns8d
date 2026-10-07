@@ -34,6 +34,13 @@ Tested with Firmware 1.5
 - Bias - Detail View
 - Channel Status
 
+### Composite Elements
+
+Used by the presets. Set their options from the module's variables.
+
+- Channel Status: one channel's attenuation and power meters, attenuation and bias markers, and learn and on indicators
+- Detailed Meters: the selected group channel's six bands, as attenuation or bias
+
 ### Variables
 
 - Band Active Reduction (Max)
