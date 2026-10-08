@@ -87,6 +87,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 		},
 		[FeedbackId.channelStatus]: {
 			name: 'Channel Status',
+			description: 'Deprecated: use the presets with composite elements instead',
 			type: 'advanced',
 			affectedProperties: ['imageBuffer'],
 			options: [chanList],
@@ -98,6 +99,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 		},
 		[FeedbackId.detailedMeters]: {
 			name: 'Detailed Meters',
+			description: 'Deprecated: use the presets with composite elements instead',
 			type: 'advanced',
 			affectedProperties: ['imageBuffer'],
 			options: [meterOption],
