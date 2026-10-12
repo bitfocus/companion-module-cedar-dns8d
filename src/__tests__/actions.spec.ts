@@ -130,3 +130,17 @@ describe('channel dropdown', () => {
 		})
 	})
 })
+
+describe('action names', () => {
+	// Both were shown in Companion as "Attenuatiuon"
+	it.each([
+		{ id: ActionId.channelAtten, name: 'Channel Attenuation' },
+		{ id: ActionId.bandAtten, name: 'Detail Attenuation' },
+	])('$id is named $name', ({ id, name }) => {
+		const { setActionDefinitions, self } = fakeInstance()
+		UpdateActions(self)
+		const definition = setActionDefinitions.mock.calls[0][0][id]
+
+		expect(definition ? definition.name : undefined).toBe(name)
+	})
+})

@@ -83,7 +83,7 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			},
 		},
 		[ActionId.channelAtten]: {
-			name: 'Channel Attenuatiuon',
+			name: 'Channel Attenuation',
 			options: [chanList, attenOption, relativeOption],
 			callback: async (action, context) => {
 				const id = action.options.channel
@@ -166,12 +166,12 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			},
 		},
 		[ActionId.bandAtten]: {
-			name: 'Detail Attenuatiuon',
+			name: 'Detail Attenuation',
 			options: [bandOption, attenOption, relativeOption],
 			callback: async (action, context) => {
 				const id = action.options.band
 				if (!isBand(id) || !Number.isFinite(action.options.value))
-					throw new Error(`Invalid channel: ${id} - Detail Attenuatiuon aborted`)
+					throw new Error(`Invalid channel: ${id} - Detail Attenuation aborted`)
 				const value = calcAttenBiasVal(action.options.value, self.getBand(id).atten, action.options.relative, -20, 0)
 				await self.buildMessage(0, ParameterType.AttenuatiuonBand, value, { band: id, signal: context.signal })
 			},
