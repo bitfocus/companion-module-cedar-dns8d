@@ -331,6 +331,21 @@ describe('failure reports', () => {
 		expect(warnings()).toEqual([`Could not connect to ${ADDRESS}`, `Lost connection to ${ADDRESS} (close code 1006)`])
 	})
 
+	// The outage flag only cleared when a socket opened, so the new address's failure went unlogged
+	it('log the first failure at a new address, even mid-outage', async () => {
+		const { instance, warnings } = createInstance()
+		await instance.configUpdated(CONFIG)
+		latestSocket().fail()
+
+		await instance.configUpdated({ ...CONFIG, host: 'dns8d-2.local' })
+		latestSocket().fail()
+
+		expect(warnings()).toEqual([
+			`Could not connect to ${ADDRESS}`,
+			'Could not connect to ws://dns8d-2.local:80/info.ws',
+		])
+	})
+
 	it('treat a watchdog trip as the start of the outage', async () => {
 		const { instance, warnings, failures } = createInstance()
 		await instance.configUpdated(CONFIG)

@@ -331,6 +331,9 @@ export default class CedarDNS8DInstance extends InstanceBase<ModuleTypes> {
 
 	async configUpdated(config: ModuleConfig): Promise<void> {
 		this.config = config
+		// A new address starts a new outage, so its first failure is logged even if the old address was already failing
+		this.outageLogged = false
+		this.messageErrorLogged = false
 		// Before deciding anything: without a host, the old socket and any pending reconnect must not carry on
 		this.disconnect()
 		if (config.host) {
