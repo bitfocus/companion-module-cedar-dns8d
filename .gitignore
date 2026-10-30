@@ -13,3 +13,5 @@ DEBUG-*
 cedar-dns8d-*.tgz
 /coverage
 .DS_Store
+*.tgz
+/.vscode
