@@ -30,6 +30,7 @@ function createMocks() {
 		updateActions: vi.fn<() => void>(),
 		updateFeedbacks: vi.fn<() => void>(),
 		log: vi.fn<CedarDNS8DInstance['log']>(),
+		updateStatus: vi.fn<CedarDNS8DInstance['updateStatus']>(),
 		setCompositeElementDefinitions:
 			vi.fn<(defs: CompanionGraphicsCompositeElementDefinitions<CompositeElementSchema>) => void>(),
 		setPresetDefinitions:

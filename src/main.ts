@@ -279,6 +279,7 @@ export default class CedarDNS8DInstance extends InstanceBase<ModuleTypes> {
 			() => {
 				opened = true
 				this.outageLogged = false
+				this.messageErrorLogged = false
 				this.updateStatus(InstanceStatus.Ok)
 				this.log('info', `Connected to ${url}`)
 				this.startPolling()
@@ -375,12 +376,17 @@ export default class CedarDNS8DInstance extends InstanceBase<ModuleTypes> {
 	setVarValues(message: string): void {
 		try {
 			SetVarValues(message, this)
-			this.messageErrorLogged = false
+			if (this.messageErrorLogged) {
+				this.messageErrorLogged = false
+				this.updateStatus(InstanceStatus.Ok)
+			}
 		} catch (err) {
-			// This runs in the socket's message listener, where a throw would end the connection's process. Log only the
-			// first of a run: the device answers every poll, so a message it keeps sending would otherwise flood the log
+			// This runs in the socket's message listener, where a throw would end the connection's process. Report only
+			// the first of a run: the device answers every poll, so a message it keeps sending would otherwise flood the
+			// log. The status says so too, as the connection is up but the variables and feedbacks have stopped updating.
 			if (!this.messageErrorLogged) {
 				this.log('warn', `Could not read message from device: ${err instanceof Error ? err.message : String(err)}`)
+				this.updateStatus(InstanceStatus.UnknownError, 'Unreadable reply from device')
 				this.messageErrorLogged = true
 			}
 		}

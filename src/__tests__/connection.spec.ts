@@ -8,6 +8,9 @@ import { ParameterType } from '../message.js'
 const DEVICE_MESSAGE =
 	'<dns8d><global on="1"/><chan idx="0"><name>Dialog</name></chan><group idx="0"><band idx="0"/></group></dns8d>'
 
+/** Missing the <global> element the parser reads, so it can't be read */
+const UNREADABLE_MESSAGE = '<dns8d><chan idx="0"/></dns8d>'
+
 const RECONNECT_MS = 10000
 
 /**
@@ -337,5 +340,49 @@ describe('failure reports', () => {
 
 		expect(warnings()).toEqual([`No message from the device for ${WATCHDOG_MIN_MS} ms, reconnecting`])
 		expect(failures()).toEqual(['No response', 'Could not connect'])
+	})
+})
+
+describe('unreadable replies', () => {
+	// The connection stayed green while every reply failed to parse, so stale variables and feedbacks looked current
+	it('show in the status, and clear on the next good reply', async () => {
+		const { instance, updateStatus } = createInstance()
+		await instance.configUpdated(CONFIG)
+		const socket = latestSocket()
+		socket.open()
+		await talk(socket, 300)
+
+		socket.receive(UNREADABLE_MESSAGE)
+		expect(updateStatus.mock.calls.at(-1)).toEqual([InstanceStatus.UnknownError, 'Unreadable reply from device'])
+
+		socket.receive(DEVICE_MESSAGE)
+		expect(updateStatus.mock.calls.at(-1)).toEqual([InstanceStatus.Ok, null])
+	})
+
+	it('set the status once for a run of them, not on every reply', async () => {
+		const { instance, statuses } = createInstance()
+		await instance.configUpdated(CONFIG)
+		const socket = latestSocket()
+		socket.open()
+		const before = statuses().length
+
+		for (let i = 0; i < 25; i++) socket.receive(UNREADABLE_MESSAGE)
+
+		expect(statuses().slice(before)).toEqual([InstanceStatus.UnknownError])
+	})
+
+	it('are reported again on a new connection', async () => {
+		const { instance, failures, updateStatus } = createInstance()
+		await instance.configUpdated(CONFIG)
+		latestSocket().open()
+		latestSocket().receive(UNREADABLE_MESSAGE)
+		latestSocket().closed(1006)
+		expect(failures()).toEqual(['Connection lost'])
+
+		await vi.advanceTimersByTimeAsync(RECONNECT_MS)
+		latestSocket().open()
+		latestSocket().receive(UNREADABLE_MESSAGE)
+
+		expect(updateStatus.mock.calls.at(-1)).toEqual([InstanceStatus.UnknownError, 'Unreadable reply from device'])
 	})
 })
