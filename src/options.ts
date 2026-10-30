@@ -38,6 +38,7 @@ const onOffToggle: CompanionInputFieldDropdown<'value', ToggleValue> = {
 	label: '',
 	choices: TOGGLE_CHOICES,
 	default: TOGGLE_CHOICES[2].id,
+	expressionDescription: 'Should return a number: 0: off, 1: on, 2: toggle',
 }
 
 /**
