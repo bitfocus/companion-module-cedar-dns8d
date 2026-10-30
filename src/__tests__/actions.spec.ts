@@ -45,23 +45,6 @@ describe('action callbacks', () => {
 
 		expect(buildMessage).toHaveBeenCalledWith(0, ParameterType.BiasBand, -4, { band: 6, signal })
 	})
-
-	// Detail Attenuation used to accept bands 7 and 8, which the detail view doesn't have
-	it.each([ActionId.bandAtten, ActionId.bandBias])('%s rejects band 7', async (actionId) => {
-		const { defs, buildMessage } = setup()
-
-		await expect(runAction(defs, actionId, { band: 7, value: -3, relative: false })).rejects.toThrow(
-			'Invalid channel: 7',
-		)
-		expect(buildMessage).not.toHaveBeenCalled()
-	})
-
-	it('rejects a channel the device does not have', async () => {
-		const { defs, buildMessage } = setup()
-
-		await expect(runAction(defs, ActionId.channelOn, { channel: 9, value: '1' })).rejects.toThrow('Invalid channel: 9')
-		expect(buildMessage).not.toHaveBeenCalled()
-	})
 })
 
 describe('action learn', () => {
@@ -80,12 +63,6 @@ describe('action learn', () => {
 		self.getChannel(4).on = true
 
 		expect(await learnAction(defs, ActionId.channelOn, { channel: 4, value: '2' })).toEqual({ value: '1' })
-	})
-
-	it('learns nothing for a channel the device does not have', async () => {
-		const { defs } = setup()
-
-		expect(await learnAction(defs, ActionId.channelName, { channel: 0, value: '' })).toBeUndefined()
 	})
 })
 

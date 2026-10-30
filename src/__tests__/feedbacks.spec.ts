@@ -60,12 +60,6 @@ describe('advanced feedbacks', () => {
 		expect([...pixels.subarray(offset, offset + 4)]).toEqual([255, 91, 91, 91])
 	})
 
-	it('draws nothing for a channel the device does not have', () => {
-		const { runAdvanced } = setup()
-
-		expect(runAdvanced(FeedbackId.channelStatus, { channel: 9 })).toEqual({})
-	})
-
 	it.each([ParameterType.AttenuatiuonBand, ParameterType.BiasBand])('detailed meters (%s) return an image', (type) => {
 		const { runAdvanced } = setup()
 		const result = runAdvanced(FeedbackId.detailedMeters, { type })

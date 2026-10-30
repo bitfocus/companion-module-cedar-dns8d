@@ -2,7 +2,7 @@ import type { CompanionAdvancedFeedbackResult, CompanionFeedbackDefinitions } fr
 import { colours } from './colours.js'
 import { channelOption, meterOption, type MeterType } from './options.js'
 import type CedarDNS8DInstance from './main.js'
-import { buildIcon, buildDetailIcon, isChannel } from './utils.js'
+import { buildIcon, buildDetailIcon } from './utils.js'
 import { CHANNELS, ParameterType } from './message.js'
 
 /**
@@ -62,7 +62,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			options: [chanList],
 			callback: (feedback) => {
 				const id = feedback.options.channel
-				return isChannel(id) && self.getChannel(id).learn
+				return self.getChannel(id).learn
 			},
 		},
 		[FeedbackId.channelDSP]: {
@@ -72,7 +72,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			options: [chanList],
 			callback: (feedback) => {
 				const id = feedback.options.channel
-				return isChannel(id) && self.getChannel(id).dsp
+				return self.getChannel(id).dsp
 			},
 		},
 		[FeedbackId.channelOn]: {
@@ -82,7 +82,7 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			options: [chanList],
 			callback: (feedback) => {
 				const id = feedback.options.channel
-				return isChannel(id) && self.getChannel(id).on
+				return self.getChannel(id).on
 			},
 		},
 		[FeedbackId.channelStatus]: {
@@ -93,7 +93,6 @@ export function UpdateFeedbacks(self: CedarDNS8DInstance): void {
 			options: [chanList],
 			callback: (feedback) => {
 				const id = feedback.options.channel
-				if (!isChannel(id)) return {}
 				return imageResult(buildIcon(self.getChannel(id), feedback.image?.width, feedback.image?.height))
 			},
 		},

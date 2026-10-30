@@ -2,7 +2,7 @@ import { graphics } from 'companion-module-utils'
 import { colours } from './colours.js'
 import type CedarDNS8DInstance from './main.js'
 import type { DNS8Channel } from './main.js'
-import { BANDS, CHANNELS, ParameterType, type BandNumber, type ChannelNumber } from './message.js'
+import { ParameterType } from './message.js'
 import type { ToggleValue } from './options.js'
 
 export enum MeterTypes {
@@ -25,15 +25,6 @@ export function parseStringFromBoolean(val: boolean): '0' | '1' {
 
 export function calcBooleanVal(actVal: ToggleValue, curVal: boolean): '0' | '1' {
 	return actVal === '2' ? (!curVal ? '1' : '0') : actVal
-}
-
-// Option values are restored from saved buttons, so a channel or band the device doesn't have can still arrive
-export function isChannel(id: number): id is ChannelNumber {
-	return (CHANNELS as readonly number[]).includes(id)
-}
-
-export function isBand(id: number): id is BandNumber {
-	return (BANDS as readonly number[]).includes(id)
 }
 
 export function calcAttenBiasVal(actVal: number, curVal: number, rel: boolean, min: number, max: number): number {

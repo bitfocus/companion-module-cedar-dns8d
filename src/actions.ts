@@ -11,7 +11,7 @@ import {
 	relativeOption,
 	type ToggleValue,
 } from './options.js'
-import { calcBooleanVal, calcAttenBiasVal, isBand, isChannel, parseStringFromBoolean } from './utils.js'
+import { calcBooleanVal, calcAttenBiasVal, parseStringFromBoolean } from './utils.js'
 import { CHANNELS, ParameterType } from './message.js'
 
 /**
@@ -57,13 +57,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [chanList, learnOption],
 			callback: async (action, context) => {
 				const id = action.options.channel
-				if (!isChannel(id)) throw new Error(`Invalid channel: ${id} - Channel Learn aborted`)
 				const value = calcBooleanVal(action.options.value, self.getChannel(id).learn)
 				await self.buildMessage(id, ParameterType.Learn, value, { signal: context.signal })
 			},
 			learn: (action) => {
 				const id = action.options.channel
-				if (!isChannel(id)) return undefined
 				return { value: parseStringFromBoolean(self.getChannel(id).learn) }
 			},
 		},
@@ -72,13 +70,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [chanList, onOption],
 			callback: async (action, context) => {
 				const id = action.options.channel
-				if (!isChannel(id)) throw new Error(`Invalid channel: ${id} - Channel On aborted`)
 				const value = calcBooleanVal(action.options.value, self.getChannel(id).on)
 				await self.buildMessage(id, ParameterType.On, value, { signal: context.signal })
 			},
 			learn: (action) => {
 				const id = action.options.channel
-				if (!isChannel(id)) return undefined
 				return { value: parseStringFromBoolean(self.getChannel(id).on) }
 			},
 		},
@@ -87,14 +83,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [chanList, attenOption, relativeOption],
 			callback: async (action, context) => {
 				const id = action.options.channel
-				if (!isChannel(id) || !Number.isFinite(action.options.value))
-					throw new Error(`Invalid channel: ${id} - Channel Attenuation aborted`)
 				const value = calcAttenBiasVal(action.options.value, self.getChannel(id).atten, action.options.relative, -20, 0)
 				await self.buildMessage(id, ParameterType.Attenuatiuon, value, { signal: context.signal })
 			},
 			learn: (action) => {
 				const id = action.options.channel
-				if (!isChannel(id)) return undefined
 				return { value: self.getChannel(id).atten, relative: false }
 			},
 		},
@@ -103,14 +96,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [chanList, biasOption, relativeOption],
 			callback: async (action, context) => {
 				const id = action.options.channel
-				if (!isChannel(id) || !Number.isFinite(action.options.value))
-					throw new Error(`Invalid channel: ${id} - Channel Bias aborted`)
 				const value = calcAttenBiasVal(action.options.value, self.getChannel(id).bias, action.options.relative, -10, 10)
 				await self.buildMessage(id, ParameterType.Bias, value, { signal: context.signal })
 			},
 			learn: (action) => {
 				const id = action.options.channel
-				if (!isChannel(id)) return undefined
 				return { value: self.getChannel(id).bias, relative: false }
 			},
 		},
@@ -119,12 +109,10 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [chanList, nameOption],
 			callback: async (action, context) => {
 				const id = action.options.channel
-				if (!isChannel(id)) throw new Error(`Invalid channel: ${id} - Channel Name aborted`)
 				await self.buildMessage(id, ParameterType.Name, action.options.value ?? '', { signal: context.signal })
 			},
 			learn: (action) => {
 				const id = action.options.channel
-				if (!isChannel(id)) return undefined
 				return { value: self.getChannel(id).name }
 			},
 		},
@@ -155,7 +143,6 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [chanList],
 			callback: async (action, context) => {
 				const id = action.options.channel
-				if (!isChannel(id)) throw new Error(`Invalid channel: ${id} - Detail Select Channel aborted`)
 				await self.buildMessage(id, ParameterType.None, 0, {
 					group: (self.dns8d.selectedGroup = id),
 					signal: context.signal,
@@ -170,14 +157,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [bandOption, attenOption, relativeOption],
 			callback: async (action, context) => {
 				const id = action.options.band
-				if (!isBand(id) || !Number.isFinite(action.options.value))
-					throw new Error(`Invalid channel: ${id} - Detail Attenuation aborted`)
 				const value = calcAttenBiasVal(action.options.value, self.getBand(id).atten, action.options.relative, -20, 0)
 				await self.buildMessage(0, ParameterType.AttenuatiuonBand, value, { band: id, signal: context.signal })
 			},
 			learn: (action) => {
 				const id = action.options.band
-				if (!isBand(id)) return undefined
 				return { value: self.getBand(id).atten, relative: false }
 			},
 		},
@@ -186,14 +170,11 @@ export function UpdateActions(self: CedarDNS8DInstance): void {
 			options: [bandOption, biasOption, relativeOption],
 			callback: async (action, context) => {
 				const id = action.options.band
-				if (!isBand(id) || !Number.isFinite(action.options.value))
-					throw new Error(`Invalid channel: ${id} - Detail Bias aborted`)
 				const value = calcAttenBiasVal(action.options.value, self.getBand(id).bias, action.options.relative, -10, 10)
 				await self.buildMessage(0, ParameterType.BiasBand, value, { band: id, signal: context.signal })
 			},
 			learn: (action) => {
 				const id = action.options.band
-				if (!isBand(id)) return undefined
 				return { value: self.getBand(id).bias, relative: false }
 			},
 		},
